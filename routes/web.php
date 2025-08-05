@@ -35,3 +35,13 @@ Route::get('/password/forgot', function () {
 Route::post('/password/forgot', function () {
     return redirect()->route('login.form');
 })->name('password.submit');
+
+Route::get('/userdashboard', function () {
+    return view('userdashboard');
+});
+
+Route::get('/userprofile', function () {
+    return view('userprofile');
+});
+
+
