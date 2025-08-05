@@ -1,0 +1,76 @@
+body {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.card {
+    background-color: #ffffff;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+
+/* Seat layout flex container */
+.seat-layout {
+    width: 100%;
+}
+
+/* Each row flex container */
+.seat-layout>div {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+/* Individual seat */
+.seat {
+    width: 50px;
+    height: 50px;
+    background-color: white;
+    border: 2px solid #444;
+    line-height: 46px;
+    text-align: center;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+/* Medium gap between 2nd and 3rd seat */
+.seat.ms-4 {
+    margin-left: 20px;
+    margin-right: 6px;
+}
+
+.seat:hover {
+    background-color: #d4edda;
+}
+
+.seat.selected {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.seat.taken {
+    background-color: #dc3545;
+    color: white;
+    cursor: not-allowed;
+}
+
+.legend-box {
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    margin-right: 10px;
+    border: 1px solid #444;
+    border-radius: 5px;
+}
+
+.legend-box.available {
+    background-color: white;
+}
+
+.legend-box.taken {
+    background-color: #dc3545;
+}

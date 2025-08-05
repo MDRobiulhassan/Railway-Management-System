@@ -1,0 +1,101 @@
+body {
+    background-color: #f4f6f9;
+    margin: 0;
+    padding: 0;
+    font-weight: bold;
+}
+
+.search-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+#userDropdown {
+    background-color: #007bff;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+.navbar-nav .nav-link {
+    color: #000 !important;
+}
+
+
+/* Mobile navbar styling */
+@media (max-width: 991.98px) {
+    .navbar-collapse {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .navbar-nav {
+        text-align: center;
+    }
+
+    .navbar-nav .nav-item {
+        margin-bottom: 10px;
+    }
+
+    .navbar-nav .nav-link {
+        padding: 10px 0;
+        font-size: 1.1rem;
+    }
+
+    .dropdown {
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    #userDropdown {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+        padding: 10px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (min-width: 992px) {
+    .navbar-nav {
+        display: flex;
+        justify-content: center;
+        flex-grow: 1;
+    }
+
+    .navbar-nav .nav-item {
+        margin: 0 15px;
+    }
+
+    .dropdown {
+        margin-left: 15px;
+    }
+}
+
+.custom-table {
+    border-radius: 10px;
+    overflow: hidden;
+    width: 95%;
+}
+
+.custom-table th,
+.custom-table td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.book-btn {
+    background-color: purple;
+    color: white;
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.book-btn:hover {
+    background-color: #6a0dad;
+    color: white;
+}

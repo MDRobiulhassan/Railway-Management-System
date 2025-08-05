@@ -1,0 +1,17 @@
+.card-img-top {
+    height: 180px;
+    object-fit: cover;
+}
+
+.category-heading {
+    margin-top: 60px;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-weight: bold;
+}
+
+.btn-toggle {
+    min-width: 80px;
+}
