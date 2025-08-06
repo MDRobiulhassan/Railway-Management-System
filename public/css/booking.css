@@ -9,12 +9,11 @@ body {
     border-radius: 12px;
 }
 
-/* Seat layout flex container */
 .seat-layout {
     width: 100%;
 }
 
-/* Each row flex container */
+/* Each row of seats */
 .seat-layout>div {
     display: flex;
     justify-content: center;
@@ -22,7 +21,7 @@ body {
     width: 100%;
 }
 
-/* Individual seat */
+/* Seat styles */
 .seat {
     width: 50px;
     height: 50px;
@@ -37,7 +36,6 @@ body {
     margin-right: 6px;
 }
 
-/* Medium gap between 2nd and 3rd seat */
 .seat.ms-4 {
     margin-left: 20px;
     margin-right: 6px;

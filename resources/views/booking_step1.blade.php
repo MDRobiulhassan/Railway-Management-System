@@ -18,7 +18,7 @@
         </div>
 
         <!-- Class selection -->
-        <div class="mb-4">
+        <div class="mb-3">
             <label for="class" class="form-label fw-bold">Select Class:</label>
             <select id="class" class="form-select w-50 mx-auto fw-bold">
                 <option selected disabled>Choose class</option>
@@ -28,77 +28,148 @@
             </select>
         </div>
 
-        <!-- Seat layout & legend side-by-side -->
-        <div class="row justify-content-center align-items-start">
-            <!-- Seat layout card -->
-            <div class="col-md-7">
-                <div class="card p-4 mb-4">
-                    <div class="seat-layout">
-                        @for ($i = 1; $i <= 32; $i++)
-                            @php
-                                $posInRow = ($i - 1) % 4; // 0,1,2,3
-                                $isTaken = in_array($i, [3, 5, 9, 16, 22]);
-                            @endphp
+        <!-- Compartment selection -->
+        <div class="mb-4" id="compartment-section" style="display: none;">
+            <label for="compartment" class="form-label fw-bold">Select Compartment:</label>
+            <select id="compartment" class="form-select w-50 mx-auto fw-bold">
+                <option selected disabled>Choose compartment</option>
+            </select>
+        </div>
 
-                            @if ($posInRow === 0)
-                                <div class="d-flex justify-content-center mb-2 w-100">
-                            @endif
-
-                                <div class="seat {{ $isTaken ? 'taken' : '' }} {{ $posInRow === 2 ? 'ms-4' : '' }}"
-                                    data-seat="{{ $i }}">
-                                    {{ $i }}
-                                </div>
-
-                                @if ($posInRow === 3)
-                                    </div>
-                                @endif
-                        @endfor
+        <!-- Seat layout & legend -->
+        <div id="seat-section" style="display: none;">
+            <div class="row justify-content-center align-items-start">
+                <div class="col-md-7">
+                    <div class="card p-4 mb-4">
+                        <div id="seat-layout" class="seat-layout"></div>
                     </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="col-md-3 text-start">
+                    <h5 class="fw-bold">Legend:</h5>
+                    <p><span class="legend-box available"></span> Available</p>
+                    <p><span class="legend-box taken"></span> Taken</p>
                 </div>
             </div>
 
-            <!-- Legend -->
-            <div class="col-md-3 text-start">
-                <h5 class="fw-bold">Legend:</h5>
-                <p><span class="legend-box available"></span> Available</p>
-                <p><span class="legend-box taken"></span> Taken</p>
-            </div>
+            <!-- Selected seats & price -->
+            <h4 class="mt-4">Selected Seat(s): <span id="selected-seats">None</span></h4>
+            <h4>Total Price: <span id="total-price">৳ 0</span></h4>
+
+            <a href="{{ route('booking.step2') }}" class="btn btn-primary btn-sm mt-4 px-4 py-2 fw-bold mb-2"
+                id="next-btn" style="min-width: 50px;">Next</a>
         </div>
-
-        <!-- Selected seats & price -->
-        <h4 class="mt-4">Selected Seat(s): <span id="selected-seats">None</span></h4>
-        <h4>Total Price: <span id="total-price">৳ 0</span></h4>
-
-        <a href="{{ route('booking.step2') }}" class="btn btn-primary btn-sm mt-4 px-4 py-2 fw-bold mb-2" id="next-btn"
-            style="min-width: 50px;">Next</a>
-
     </div>
 
     <script>
         const seatPrice = 350;
         const selectedSeats = new Set();
+        const takenSeats = [3, 5, 9, 16, 22];
 
-        document.querySelectorAll('.seat').forEach(seat => {
-            seat.addEventListener('click', function () {
-                if (this.classList.contains('taken')) return;
+        const classDropdown = document.getElementById('class');
+        const compartmentDropdown = document.getElementById('compartment');
+        const seatSection = document.getElementById('seat-section');
+        const compartmentSection = document.getElementById('compartment-section');
+        const seatLayout = document.getElementById('seat-layout');
 
-                const seatNum = this.dataset.seat;
+        const compartmentOptions = {
+            ac: ['Ka', 'Kha'],
+            snigdha: ['Ga', 'Gha'],
+            shovan: ['Uma', 'Cha']
+        };
 
-                if (this.classList.contains('selected')) {
-                    this.classList.remove('selected');
-                    selectedSeats.delete(seatNum);
+        classDropdown.addEventListener('change', () => {
+            const selectedClass = classDropdown.value;
+            compartmentDropdown.innerHTML = '<option selected disabled>Choose compartment</option>';
+            compartmentOptions[selectedClass].forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.toLowerCase();
+                option.textContent = opt;
+                compartmentDropdown.appendChild(option);
+            });
+            compartmentSection.style.display = 'block';
+            seatSection.style.display = 'none';
+        });
+
+        compartmentDropdown.addEventListener('change', () => {
+            seatSection.style.display = 'block';
+            renderSeats(classDropdown.value);
+        });
+
+        function renderSeats(trainClass) {
+            seatLayout.innerHTML = '';
+            selectedSeats.clear();
+            updateSeatSummary();
+
+            let seatNumber = 1;
+            for (let row = 0; row < 8; row++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.classList.add('d-flex', 'justify-content-center', 'mb-2', 'w-100');
+
+                if (trainClass === 'ac') {
+                    // AC: 1 + 2 seats per row
+                    rowDiv.appendChild(createSeat(seatNumber++));
+                    rowDiv.appendChild(createSpacer());
+                    rowDiv.appendChild(createSeat(seatNumber++));
+                    rowDiv.appendChild(createSeat(seatNumber++));
                 } else {
-                    this.classList.add('selected');
-                    selectedSeats.add(seatNum);
+                    // Others: 2 + 2 seats per row
+                    rowDiv.appendChild(createSeat(seatNumber++));
+                    rowDiv.appendChild(createSeat(seatNumber++));
+                    rowDiv.appendChild(createSpacer());
+                    rowDiv.appendChild(createSeat(seatNumber++));
+                    rowDiv.appendChild(createSeat(seatNumber++));
                 }
 
-                document.getElementById('selected-seats').textContent =
-                    selectedSeats.size ? [...selectedSeats].join(', ') : 'None';
+                seatLayout.appendChild(rowDiv);
+            }
 
-                document.getElementById('total-price').textContent =
-                    '৳ ' + (selectedSeats.size * seatPrice);
+            attachSeatClickListeners();
+        }
+
+        function createSeat(num) {
+            const seat = document.createElement('div');
+            seat.classList.add('seat');
+            seat.dataset.seat = num;
+            seat.textContent = num;
+            if (takenSeats.includes(num)) seat.classList.add('taken');
+            return seat;
+        }
+
+        function createSpacer() {
+            const spacer = document.createElement('div');
+            spacer.classList.add('ms-4');
+            return spacer;
+        }
+
+        function attachSeatClickListeners() {
+            document.querySelectorAll('.seat').forEach(seat => {
+                seat.addEventListener('click', function () {
+                    if (this.classList.contains('taken')) return;
+
+                    const seatNum = this.dataset.seat;
+
+                    if (this.classList.contains('selected')) {
+                        this.classList.remove('selected');
+                        selectedSeats.delete(seatNum);
+                    } else {
+                        this.classList.add('selected');
+                        selectedSeats.add(seatNum);
+                    }
+
+                    updateSeatSummary();
+                });
             });
-        });
+        }
+
+        function updateSeatSummary() {
+            document.getElementById('selected-seats').textContent =
+                selectedSeats.size ? [...selectedSeats].join(', ') : 'None';
+
+            document.getElementById('total-price').textContent =
+                '৳ ' + (selectedSeats.size * seatPrice);
+        }
     </script>
 </body>
 
