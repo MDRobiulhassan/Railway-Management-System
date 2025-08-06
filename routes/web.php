@@ -23,7 +23,7 @@ Route::get('/login', function () {
 
 // Login form submission 
 Route::post('/login', function () {
-    return redirect()->route('login.form'); // redirecting back to login for now
+    return redirect()->route('login.form');
 })->name('login.submit');
 
 // Forgot password form
@@ -60,21 +60,3 @@ Route::get('/booking-step3', function () {
 Route::get('/booking-confirm', function () {
     return view('booking_confirm');
 })->name('booking.confirm');
-
-
-Route::get('/userdashboard', function () {
-    return view('userdashboard');
-});
-
-Route::get('/userprofile', function () {
-    return view('userprofile');
-});
-
-Route::get('/schedule', function () {
-    return view('schedule');
-})->name('schedule');
-
-
-Route::get('/train-search', function () {
-    return view('train_search');
-})->name('train.search');

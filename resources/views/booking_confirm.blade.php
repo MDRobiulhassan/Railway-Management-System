@@ -105,7 +105,8 @@
                 </div>
             </div>
 
-            <a href="userdashboard.php" class="btn btn-primary mt-4 w-100 fw-bold dashboard-link">Proceed</a>
+            <a href="{{ route('userdashboard') }}"
+                class="btn btn-primary mt-4 w-100 fw-bold dashboard-link">Proceed</a>
         </div>
     </div>
 
