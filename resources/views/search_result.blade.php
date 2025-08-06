@@ -11,46 +11,8 @@
 
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light px-4 py-2">
-        <a class="navbar-brand" href="#">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo" width="40" />
-        </a>
+    <x-navbar />
 
-        <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
-            aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navMenu">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link fw-bold" href="#">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-bold" href="#">Search</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-bold" href="#">Schedule</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-bold" href="#">Book Tickets</a>
-                </li>
-            </ul>
-            <div class="dropdown ms-lg-3">
-                <button class="btn dropdown-toggle fw-bold" id="userDropdown" data-bs-toggle="dropdown">
-                    Robiul
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item fw-bold" href="#">Profile</a></li>
-                    <li><a class="dropdown-item fw-bold" href="#">Dashboard</a></li>
-                    <li>
-                        <hr class="dropdown-divider" />
-                    </li>
-                    <li><a class="dropdown-item fw-bold text-danger" href="#">Logout</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
 
     <div class="container mt-4">
         <h3 class="mb-4 text-center">Available Trains</h3>
