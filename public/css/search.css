@@ -12,6 +12,17 @@ body {
     padding: 20px;
 }
 
+.brand-red {
+    color: red;
+    font-weight: bold;
+}
+
+.brand-green {
+    color: green;
+    font-weight: bold;
+}
+
+
 #userDropdown {
     background-color: #007bff;
     color: white;
