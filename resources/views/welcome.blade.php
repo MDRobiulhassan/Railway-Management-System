@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ asset('css/search.css') }}">
     <link rel="stylesheet" href="{{ asset('css/welcome.css') }}">
     <style>
-        
+
     </style>
 </head>
 
@@ -110,10 +110,7 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="text-center py-4">
-        <p class="mb-0">&copy; 2025 Railway Management System. All Rights Reserved.</p>
-    </footer>
+    <x-footer />
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light px-4 py-2">
-    <a class="navbar-brand fw-bold" href="#">
+    <a class="navbar-brand fw-bold" href="{{ route('welcome') }}">
         <span class="brand-red">Bangladesh</span>
         <span class="brand-green">Railway</span>
     </a>

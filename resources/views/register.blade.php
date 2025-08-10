@@ -18,7 +18,7 @@
                 </ul>
             </div>
         @endif
-        <form method="POST" action="{{ route('register.submit') }}">
+        <form method="POST" action="#">
             @csrf
             <input type="email" name="email" placeholder="Email" required
                 value="{{ old('email') }}"

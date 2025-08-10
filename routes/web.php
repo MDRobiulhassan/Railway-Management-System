@@ -14,7 +14,7 @@ Route::get('/register', function () {
 // Register form submission 
 Route::post('/register', function () {
     return redirect()->route('login.form');
-})->name('register.submit');
+})->name('c');
 
 // Login form
 Route::get('/login', function () {
