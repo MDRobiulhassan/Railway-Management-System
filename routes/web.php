@@ -60,3 +60,65 @@ Route::get('/booking-step3', function () {
 Route::get('/booking-confirm', function () {
     return view('booking_confirm');
 })->name('booking.confirm');
+
+Route::get('/user_profile', function () {
+    return view('user_profile');
+})->name('user.profile');
+
+Route::get('/user_dashboard', function () {
+    return view('user_dashboard');
+})->name('user.dashboard');
+
+Route::get('/adminpanel', function () {
+    return view('admin.adminpanel');
+})->name('adminpanel');
+
+Route::get('/adminpanel/users', function () {
+    return view('admin.users');
+})->name('admin.users');
+Route::get('/adminpanel/trains', function () {
+    return view('admin.trains');
+})->name('admin.trains');
+Route::get('/adminpanel/stations', function () {
+    return view('admin.stations');
+})->name('admin.stations');
+Route::get('/adminpanel/schedule', function () {
+    return view('admin.schedule');
+})->name('admin.schedule');
+Route::get('/adminpanel/compartments', function () {
+    return view('admin.compartments');
+})->name('admin.compartments');
+Route::get('/adminpanel/tickets', function () {
+    return view('admin.tickets');
+})->name('admin.tickets');
+Route::get('/adminpanel/ticket_prices', function () {
+    return view('admin.ticket_prices');
+})->name('admin.ticket_prices');
+
+Route::get('/adminpanel/seats', function () {
+    return view('admin.seats');
+})->name('admin.seats');
+Route::get('/adminpanel/bookings', function () {
+    return view('admin.bookings');
+})->name('admin.bookings');
+
+Route::get('/adminpanel/payments', function () {
+    return view('admin.payments');
+})->name('admin.payments');
+
+Route::get('/adminpanel/nid', function () {
+    return view('admin.nid');
+})->name('admin.nid');
+
+Route::get('/adminpanel/food_items', function () {
+    return view('admin.food_items');
+})->name('admin.food_items');
+
+Route::get('/adminpanel/food_order', function () {
+    return view('admin.food_order');
+})->name('admin.food_order');
+
+
+
+
+

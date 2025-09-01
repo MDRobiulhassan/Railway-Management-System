@@ -1,0 +1,86 @@
+/* User Dashboard Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    padding: 20px 0;
+}
+
+.dashboard-heading {
+    margin: 2rem 0 1rem 0;
+    color: #333;
+    font-weight: bold;
+}
+
+.section-heading {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.table-responsive {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    color: #333;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table tbody td {
+    vertical-align: middle;
+    border-color: #e9ecef;
+    padding: 12px 8px;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+    
+    .btn-sm {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+}

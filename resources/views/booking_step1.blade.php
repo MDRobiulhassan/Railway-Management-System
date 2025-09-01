@@ -75,8 +75,8 @@
 
         const compartmentOptions = {
             ac: ['Ka', 'Kha'],
-            snigdha: ['Ga', 'Gha'],
-            shovan: ['Uma', 'Cha']
+            shovan: ['Ga', 'Gha'],
+            snigdha: ['Uma', 'Cha']
         };
 
         classDropdown.addEventListener('change', () => {
@@ -97,24 +97,48 @@
             renderSeats(classDropdown.value);
         });
 
-        function renderSeats(trainClass) {
+        function renderSeats(trainClass, compartment) {
             seatLayout.innerHTML = '';
             selectedSeats.clear();
             updateSeatSummary();
 
-            let seatNumber = 1;
-            for (let row = 0; row < 8; row++) {
+            let seatNumberStart = 1;
+            let seatNumberEnd = 0;
+            let rows = 0;
+
+            if (trainClass === 'ac') {
+                rows = 4; // 4 rows per compartment
+                seatNumberStart = compartment === 'ka' ? 1 : 9;
+                seatNumberEnd = compartment === 'ka' ? 8 : 16;
+            } else if (trainClass === 'shovan') {
+                rows = 6; // 6 rows per compartment
+                seatNumberStart = compartment === 'ga' ? 1 : 19;
+                seatNumberEnd = compartment === 'ga' ? 18 : 36;
+            } else if (trainClass === 'snigdha') {
+                rows = 6; // 6 rows per compartment
+                seatNumberStart = compartment === 'uma' ? 1 : 25;
+                seatNumberEnd = compartment === 'uma' ? 24 : 48;
+            }
+
+            let seatNumber = seatNumberStart;
+
+            for (let row = 0; row < rows; row++) {
                 const rowDiv = document.createElement('div');
                 rowDiv.classList.add('d-flex', 'justify-content-center', 'mb-2', 'w-100');
 
                 if (trainClass === 'ac') {
-                    // AC: 1 + 2 seats per row
+                    // 1-1 layout
                     rowDiv.appendChild(createSeat(seatNumber++));
                     rowDiv.appendChild(createSpacer());
                     rowDiv.appendChild(createSeat(seatNumber++));
+                } else if (trainClass === 'shovan') {
+                    // 1-2 layout
                     rowDiv.appendChild(createSeat(seatNumber++));
-                } else {
-                    // Others: 2 + 2 seats per row
+                    rowDiv.appendChild(createSeat(seatNumber++));
+                    rowDiv.appendChild(createSpacer());
+                    rowDiv.appendChild(createSeat(seatNumber++));
+                } else if (trainClass === 'snigdha') {
+                    // 2-2 layout
                     rowDiv.appendChild(createSeat(seatNumber++));
                     rowDiv.appendChild(createSeat(seatNumber++));
                     rowDiv.appendChild(createSpacer());
@@ -127,6 +151,14 @@
 
             attachSeatClickListeners();
         }
+
+        // Compartment change listener
+        compartmentDropdown.addEventListener('change', () => {
+            seatSection.style.display = 'block';
+            renderSeats(classDropdown.value, compartmentDropdown.value);
+        });
+
+
 
         function createSeat(num) {
             const seat = document.createElement('div');
