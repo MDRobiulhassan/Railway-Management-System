@@ -59,7 +59,6 @@
                             <button class="btn btn-info btn-sm">View Ticket</button>
                             <button class="btn btn-primary btn-sm">Download Ticket</button>
                             <button class="btn btn-danger btn-sm">Cancel Ticket</button>
-                            <button class="btn btn-warning btn-sm">Reschedule</button>
                         </td>
                     </tr>
                     <tr>
@@ -74,7 +73,6 @@
                             <button class="btn btn-info btn-sm">View Ticket</button>
                             <button class="btn btn-primary btn-sm">Download Ticket</button>
                             <button class="btn btn-danger btn-sm">Cancel Ticket</button>
-                            <button class="btn btn-warning btn-sm">Reschedule</button>
                         </td>
                     </tr>
                 </tbody>
