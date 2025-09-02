@@ -81,7 +81,7 @@ input.form-control:focus {
     margin-top: 0.25rem;
 }
 
-.btn-primary {
+.profile-card .btn-primary {
     border-radius: 10px;
     padding: 0.75rem;
     font-size: 1.1rem;
@@ -89,6 +89,6 @@ input.form-control:focus {
     transition: all 0.3s ease;
 }
 
-.btn-primary:hover {
+.profile-card .btn-primary:hover {
     background-color: #0b5ed7;
 }
