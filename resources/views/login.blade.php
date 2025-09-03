@@ -9,15 +9,26 @@
 <body class="min-h-screen bg-gray-100 flex items-center justify-center">
     <div class="bg-white p-8 rounded shadow w-full max-w-md">
         <h2 class="text-2xl font-semibold text-center mb-6 text-slate-700">Login</h2>
-        @if ($errors->any())
-            <div class="mb-4 text-red-600 text-sm">
+        @if (session('success'))
+            <x-alert type="success">
+                {{ session('success') }}
+            </x-alert>
+        @endif
+
+        @if ($errors->has('login_failed'))
+            <x-alert type="error">
+                {{ $errors->first('login_failed') }}
+            </x-alert>
+        @elseif ($errors->any())
+            <x-alert type="error">
                 <ul class="list-disc list-inside">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
-            </div>
+            </x-alert>
         @endif
+
         <form method="POST" action="{{ route('login.submit') }}">
             @csrf
             <input type="email" name="email" placeholder="Email" required

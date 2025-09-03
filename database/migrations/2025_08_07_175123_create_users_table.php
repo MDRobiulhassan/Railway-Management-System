@@ -16,9 +16,10 @@ return new class extends Migration {
             $table->text('address')->nullable();
             $table->enum('role', ['user', 'admin'])->default('user');
             $table->string('nid_number', 50)->unique();
-            $table->binary('photo')->nullable(); // or use $table->string('photo')->nullable(); for image path
+            $table->string('photo')->nullable();
             $table->date('dob')->nullable();
             $table->boolean('nid_verified')->default(false);
+            $table->rememberToken();
             $table->timestamps();
         });
     }
