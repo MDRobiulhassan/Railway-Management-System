@@ -12,13 +12,7 @@ return new class extends Migration {
             $table->string('train_name');
             $table->string('train_type', 50);
             $table->integer('total_seats');
-            $table->unsignedBigInteger('source_id');
-            $table->unsignedBigInteger('destination_id');
             $table->timestamps();
-
-            // Foreign key constraints
-            $table->foreign('source_id')->references('station_id')->on('stations')->onDelete('cascade');
-            $table->foreign('destination_id')->references('station_id')->on('stations')->onDelete('cascade');
         });
     }
 

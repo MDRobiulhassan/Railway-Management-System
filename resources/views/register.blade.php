@@ -84,18 +84,18 @@
             <input type="email" name="email" placeholder="Email" required value="{{ old('email') }}"
                 class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" />
 
-            <input type="text" name="phone" placeholder="Phone Number (11 or 14 digits)" required value="{{ old('phone') }}"
+            <input type="text" name="phone" placeholder="Phone Number" required value="{{ old('phone') }}"
                 class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" 
                 onblur="validateField(this)" oninput="validateField(this)" />
 
-            <input type="text" name="nid" placeholder="NID (13 or 17 digits)" required value="{{ old('nid') }}"
+            <input type="text" name="nid" placeholder="NID" required value="{{ old('nid') }}"
                 class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" 
                 onblur="validateField(this)" oninput="validateField(this)" />
 
             <input type="date" name="dob" placeholder="Date of Birth" required value="{{ old('dob') }}"
                 class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" />
 
-            <input type="password" name="password" placeholder="Password (min 8 characters)" required
+            <input type="password" name="password" placeholder="Password" required
                 class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" 
                 onblur="validateField(this)" oninput="validateField(this)" />
 

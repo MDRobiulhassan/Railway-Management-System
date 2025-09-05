@@ -27,7 +27,7 @@ Route::get('/search', function () {
     return view('search');
 })->name('search');
 
-Route::get('/search-result', function () {
+Route::get('/search-result', action: function () {
     return view('search_result');
 })->name('search.result');
 
