@@ -14,7 +14,7 @@
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             <li class="nav-item"><a class="nav-link fw-bold" href="{{ route('welcome') }}">Home</a></li>
             <li class="nav-item"><a class="nav-link fw-bold" href="{{ route('search') }}">Search</a></li>
-            <li class="nav-item"><a class="nav-link fw-bold" href="{{ route('search.result') }}">Schedule</a></li>
+            <li class="nav-item"><a class="nav-link fw-bold" href="{{ route('schedule') }}">Schedule</a></li>
             <li class="nav-item"><a class="nav-link fw-bold" href="{{ route('search') }}">Book Tickets</a></li>
         </ul>
 

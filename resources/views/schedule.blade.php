@@ -2,38 +2,17 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Tickets</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/search.css') }}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Train Schedule</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ asset('css/search.css') }}" />
 </head>
 
 <body>
-
     <x-navbar />
-
-
     <div class="container mt-4">
-        <h3 class="mb-4 text-center">Available Trains</h3>
-
-        <!-- Search Summary -->
-        @if(isset($searchParams))
-        <div class="row mb-3">
-            <div class="col-md-12">
-                <div class="alert alert-info">
-                    <strong>Search Results for:</strong>
-                    {{ $searchParams['from'] ?? 'Any' }} → {{ $searchParams['to'] ?? 'Any' }}
-                    @if($searchParams['date'])
-                        on {{ date('F j, Y', strtotime($searchParams['date'])) }}
-                    @endif
-                    @if($searchParams['class'])
-                        ({{ ucfirst($searchParams['class']) }} Class)
-                    @endif
-                </div>
-            </div>
-        </div>
-        @endif
+        <h3 class="mb-4 text-center">Upcoming Train Schedule</h3>
 
         <div class="table-responsive">
             <table class="table table-bordered table-hover custom-table mx-auto">
@@ -67,22 +46,17 @@
                             @endphp
                             @if($isWithinTwoHours)
                                 <span class="badge bg-warning text-dark">Booking Closed</span>
+                                <small class="d-block text-muted">Train departs in less than 2 hours</small>
                             @elseif(!$hasAvailableSeats)
                                 <span class="badge bg-danger">Fully Booked</span>
                             @else
-                                <a href="{{ route('booking.step1') }}?schedule_id={{ $schedule->schedule_id }}" class="btn book-btn">Book Now</a>
+                                <button class="btn book-btn">Book Now</button>
                             @endif
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center">
-                            <div class="py-4">
-                                <h5>No trains found</h5>
-                                <p class="text-muted">Try adjusting your search criteria or select a different date.</p>
-                                <a href="{{ route('search') }}" class="btn btn-primary">Search Again</a>
-                            </div>
-                        </td>
+                        <td colspan="8" class="text-center">No upcoming trains available.</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -90,13 +64,12 @@
         </div>
 
         <!-- Pagination -->
-        @if(isset($schedules) && $schedules->hasPages())
+        @if($schedules->hasPages())
         <div class="d-flex justify-content-center mt-4">
             {{ $schedules->appends(request()->query())->links() }}
         </div>
         @endif
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
