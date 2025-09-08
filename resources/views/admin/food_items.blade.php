@@ -17,22 +17,6 @@
     <div class="container">
         <h1>Food Management</h1>
 
-        @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        @endif
-        @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
-
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" id="searchInput" class="form-control w-25" placeholder="Search food items...">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFoodModal">
@@ -55,43 +39,31 @@
                     </tr>
                 </thead>
                 <tbody id="foodTableBody">
-                    @forelse($foodItems as $fi)
+                    <!-- Example initial row -->
                     <tr>
-                        <td>{{ $fi->food_id }}</td>
-                        <td>{{ $fi->name }}</td>
-                        <td>{{ $fi->category ?? '-' }}</td>
-                        <td>{{ $fi->description ?? '-' }}</td>
-                        <td>${{ number_format($fi->price,2) }}</td>
-                        <td><span class="badge {{ $fi->availability ? 'bg-success' : 'bg-danger' }}">{{ $fi->availability ? 'Available' : 'Not Available' }}</span></td>
+                        <td>1</td>
+                        <td>Pizza</td>
+                        <td>Fast Food</td>
+                        <td>Cheese Pizza</td>
+                        <td>$10.00</td>
+                        <td><span class="badge bg-success">Available</span></td>
                         <td>-</td>
                         <td>
-                            <button class="btn btn-sm btn-warning edit-food-btn" data-bs-toggle="modal" data-bs-target="#editFoodModal" data-food='@json($fi)'>Edit</button>
-                            <form action="{{ route('admin.food_items.destroy', $fi) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this item?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-sm btn-danger delete-btn" type="submit">Delete</button>
-                            </form>
+                            <button class="btn btn-sm btn-warning edit-food-btn" data-bs-toggle="modal"
+                                data-bs-target="#editFoodModal">Edit</button>
+                            <button class="btn btn-sm btn-danger delete-btn">Delete</button>
                         </td>
                     </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="text-center">No food items found</td>
-                    </tr>
-                    @endforelse
                 </tbody>
             </table>
         </div>
-        @isset($foodItems)
-        <div class="mt-3">{{ $foodItems->links() }}</div>
-        @endisset
     </div>
 
     <!-- Add Food Modal -->
     <div class="modal fade" id="addFoodModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form id="addFoodForm" method="POST" action="{{ route('admin.food_items.store') }}">
-                    @csrf
+                <form id="addFoodForm">
                     <div class="modal-header">
                         <h5 class="modal-title">Add New Food Item</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -101,19 +73,19 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Food Name</label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
+                                    <input type="text" class="form-control" id="name" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="category" class="form-label">Category</label>
-                                    <input type="text" class="form-control" id="category" name="category">
+                                    <input type="text" class="form-control" id="category">
                                 </div>
                                 <div class="mb-3">
                                     <label for="price" class="form-label">Price</label>
-                                    <input type="number" step="0.01" class="form-control" id="price" name="price" min="0">
+                                    <input type="number" step="0.01" class="form-control" id="price" min="0">
                                 </div>
                                 <div class="mb-3">
                                     <label for="availability" class="form-label">Availability</label>
-                                    <select class="form-select" id="availability" name="availability">
+                                    <select class="form-select" id="availability">
                                         <option value="1">Available</option>
                                         <option value="0">Not Available</option>
                                     </select>
@@ -122,7 +94,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                    <textarea class="form-control" id="description" rows="3"></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="image" class="form-label">Image</label>
@@ -144,9 +116,7 @@
     <div class="modal fade" id="editFoodModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form id="editFoodForm" method="POST">
-                    @csrf
-                    @method('PUT')
+                <form id="editFoodForm">
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Food Item</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -156,20 +126,20 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="edit_name" class="form-label">Food Name</label>
-                                    <input type="text" class="form-control" id="edit_name" name="name" required>
+                                    <input type="text" class="form-control" id="edit_name" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="edit_category" class="form-label">Category</label>
-                                    <input type="text" class="form-control" id="edit_category" name="category">
+                                    <input type="text" class="form-control" id="edit_category">
                                 </div>
                                 <div class="mb-3">
                                     <label for="edit_price" class="form-label">Price</label>
-                                    <input type="number" step="0.01" class="form-control" id="edit_price" name="price" min="0"
+                                    <input type="number" step="0.01" class="form-control" id="edit_price" min="0"
                                         required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="edit_availability" class="form-label">Availability</label>
-                                    <select class="form-select" id="edit_availability" name="availability">
+                                    <select class="form-select" id="edit_availability">
                                         <option value="1">Available</option>
                                         <option value="0">Not Available</option>
                                     </select>
@@ -178,7 +148,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="edit_description" class="form-label">Description</label>
-                                    <textarea class="form-control" id="edit_description" name="description" rows="3"></textarea>
+                                    <textarea class="form-control" id="edit_description" rows="3"></textarea>
                                 </div>
                                 <div class="mb-3">
                                     <label for="edit_image" class="form-label">Image</label>
@@ -201,6 +171,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script>
         const foodTableBody = document.getElementById('foodTableBody');
+        let currentEditRow = null;
 
         // Search
         document.getElementById('searchInput').addEventListener('keyup', function () {
@@ -210,18 +181,65 @@
             });
         });
 
-        // Populate edit modal
-        document.querySelectorAll('.edit-food-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const fi = JSON.parse(this.getAttribute('data-food'));
-                const form = document.getElementById('editFoodForm');
-                form.action = `/adminpanel/food_items/${fi.food_id}`;
-                document.getElementById('edit_name').value = fi.name;
-                document.getElementById('edit_category').value = fi.category || '';
-                document.getElementById('edit_description').value = fi.description || '';
-                document.getElementById('edit_price').value = fi.price;
-                document.getElementById('edit_availability').value = fi.availability ? '1' : '0';
-            });
+        // Add Food Item
+        document.getElementById('addFoodForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const category = document.getElementById('category').value || '-';
+            const price = parseFloat(document.getElementById('price').value || 0).toFixed(2);
+            const availability = document.getElementById('availability').value === '1';
+            const description = document.getElementById('description').value || '-';
+            const image = document.getElementById('image').files[0] ? 'Image' : '-';
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${foodTableBody.children.length + 1}</td>
+                <td>${name}</td>
+                <td>${category}</td>
+                <td>${description}</td>
+                <td>$${price}</td>
+                <td><span class="badge ${availability ? 'bg-success' : 'bg-danger'}">${availability ? 'Available' : 'Not Available'}</span></td>
+                <td>${image}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning edit-food-btn" data-bs-toggle="modal" data-bs-target="#editFoodModal">Edit</button>
+                    <button class="btn btn-sm btn-danger delete-btn">Delete</button>
+                </td>
+            `;
+            foodTableBody.appendChild(row);
+            this.reset();
+            bootstrap.Modal.getInstance(document.getElementById('addFoodModal')).hide();
+        });
+
+        // Edit / Delete
+        foodTableBody.addEventListener('click', function (e) {
+            const row = e.target.closest('tr');
+            if (e.target.classList.contains('edit-food-btn')) {
+                currentEditRow = row;
+                document.getElementById('edit_name').value = row.children[1].textContent;
+                document.getElementById('edit_category').value = row.children[2].textContent;
+                document.getElementById('edit_description').value = row.children[3].textContent;
+                document.getElementById('edit_price').value = parseFloat(row.children[4].textContent.replace('$', ''));
+                document.getElementById('edit_availability').value = row.children[5].textContent.includes('Available') ? '1' : '0';
+            }
+            if (e.target.classList.contains('delete-btn')) {
+                if (confirm('Delete this item?')) {
+                    row.remove();
+                    // Re-number IDs
+                    Array.from(foodTableBody.children).forEach((r, i) => r.children[0].textContent = i + 1);
+                }
+            }
+        });
+
+        document.getElementById('editFoodForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (!currentEditRow) return;
+            const availability = document.getElementById('edit_availability').value === '1';
+            currentEditRow.children[1].textContent = document.getElementById('edit_name').value;
+            currentEditRow.children[2].textContent = document.getElementById('edit_category').value || '-';
+            currentEditRow.children[3].textContent = document.getElementById('edit_description').value || '-';
+            currentEditRow.children[4].textContent = `$${parseFloat(document.getElementById('edit_price').value || 0).toFixed(2)}`;
+            currentEditRow.children[5].innerHTML = `<span class="badge ${availability ? 'bg-success' : 'bg-danger'}">${availability ? 'Available' : 'Not Available'}</span>`;
+            bootstrap.Modal.getInstance(document.getElementById('editFoodModal')).hide();
         });
 
         // Reset modals on close

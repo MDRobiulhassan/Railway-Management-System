@@ -27,7 +27,7 @@
 
             <!-- Passengers -->
             <div class="col-md-3">
-                <a href="{{ route('admin.users.index') }}" class="text-decoration-none">
+                <a href="{{ route('admin.users') }}" class="text-decoration-none">
                     <div class="card text-center p-3 hover-effect">
                         <i class="fa-solid fa-users"></i>
                         <h5 class="card-title">Users</h5>

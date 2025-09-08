@@ -16,21 +16,11 @@
     <div class="container">
         <h1>Train Station Management</h1>
 
-        @if(session('success'))
+        <!-- Success & error messages -->
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
+            Action completed successfully
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        @endif
-        @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
 
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" class="form-control w-25" id="searchInput" placeholder="Search stations...">
@@ -52,38 +42,55 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($stations as $s)
+                    <!-- Hardcoded Stations -->
                     <tr>
-                        <td>{{ $s->station_id }}</td>
-                        <td>{{ $s->name }}</td>
-                        <td><span class="badge bg-primary">{{ Str::upper(Str::substr($s->name,0,3)) }}</span></td>
-                        <td>{{ $s->location }}</td>
-                        <td>{{ $s->location }}</td>
+                        <td>1</td>
+                        <td>Dhaka Central</td>
+                        <td><span class="badge bg-primary">DHK</span></td>
+                        <td>Dhaka</td>
+                        <td>Dhaka</td>
                         <td>
                             <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-station-btn" data-bs-toggle="modal" data-bs-target="#editStationModal"
-                                    data-station='@json($s)'>Edit</button>
-                                <form action="{{ route('admin.stations.destroy', $s) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this station?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                </form>
+                                <button class="btn btn-sm btn-warning edit-station-btn" data-bs-toggle="modal"
+                                    data-bs-target="#editStationModal" data-station="1">Edit</button>
+                                <button class="btn btn-sm btn-danger" 
+                                    title="Cannot delete main station">Delete</button>
                             </div>
                         </td>
                     </tr>
-                    @empty
                     <tr>
-                        <td colspan="6" class="text-center">No stations found</td>
+                        <td>2</td>
+                        <td>Chittagong Junction</td>
+                        <td><span class="badge bg-primary">CTG</span></td>
+                        <td>Chittagong</td>
+                        <td>Chittagong</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-warning edit-station-btn" data-bs-toggle="modal"
+                                    data-bs-target="#editStationModal" data-station="2">Edit</button>
+                                <button class="btn btn-sm btn-danger"
+                                    onclick="if(confirm('Are you sure you want to delete Chittagong Junction?')){alert('Deleted!')}">Delete</button>
+                            </div>
+                        </td>
                     </tr>
-                    @endforelse
+                    <tr>
+                        <td>3</td>
+                        <td>Rajshahi Terminal</td>
+                        <td><span class="badge bg-primary">RJH</span></td>
+                        <td>Rajshahi</td>
+                        <td>Rajshahi</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-warning edit-station-btn" data-bs-toggle="modal"
+                                    data-bs-target="#editStationModal" data-station="3">Edit</button>
+                                <button class="btn btn-sm btn-danger"
+                                    onclick="if(confirm('Are you sure you want to delete Rajshahi Terminal?')){alert('Deleted!')}">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
-        @isset($stations)
-        <div class="mt-3">
-            {{ $stations->links() }}
-        </div>
-        @endisset
     </div>
 
     <!-- Add Station Modal -->
@@ -91,8 +98,7 @@
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="POST" action="{{ route('admin.stations.store') }}">
-                    @csrf
+                <form>
                     <div class="modal-header">
                         <h5 class="modal-title" id="addStationModalLabel">Add New Station</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -100,11 +106,19 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="station_name" class="form-label">Station Name</label>
-                            <input type="text" class="form-control" id="station_name" name="name" required>
+                            <input type="text" class="form-control" id="station_name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="station_location" class="form-label">Location</label>
-                            <input type="text" class="form-control" id="station_location" name="location" required>
+                            <label for="station_code" class="form-label">Station Code</label>
+                            <input type="text" class="form-control" id="station_code" maxlength="10" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="station_city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="station_city" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="station_state" class="form-label">State</label>
+                            <input type="text" class="form-control" id="station_state" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -121,9 +135,7 @@
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="editStationForm" method="POST">
-                    @csrf
-                    @method('PUT')
+                <form id="editStationForm">
                     <div class="modal-header">
                         <h5 class="modal-title" id="editStationModalLabel">Edit Station</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -131,11 +143,19 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="edit_station_name" class="form-label">Station Name</label>
-                            <input type="text" class="form-control" id="edit_station_name" name="name" required>
+                            <input type="text" class="form-control" id="edit_station_name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="edit_station_location" class="form-label">Location</label>
-                            <input type="text" class="form-control" id="edit_station_location" name="location" required>
+                            <label for="edit_station_code" class="form-label">Station Code</label>
+                            <input type="text" class="form-control" id="edit_station_code" maxlength="10" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_station_city" class="form-label">City</label>
+                            <input type="text" class="form-control" id="edit_station_city" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_station_state" class="form-label">State</label>
+                            <input type="text" class="form-control" id="edit_station_state" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -160,13 +180,21 @@
             });
         });
 
-        // Edit station functionality populate from data attribute
+        // Edit station functionality (hardcoded example)
         document.querySelectorAll('.edit-station-btn').forEach(button => {
             button.addEventListener('click', function () {
-                const station = JSON.parse(this.getAttribute('data-station'));
-                document.getElementById('editStationForm').action = `/adminpanel/stations/${station.station_id}`;
-                document.getElementById('edit_station_name').value = station.name || '';
-                document.getElementById('edit_station_location').value = station.location || '';
+                const stationId = this.getAttribute('data-station');
+                if (stationId == 2) { // Chittagong
+                    document.getElementById('edit_station_name').value = 'Chittagong Junction';
+                    document.getElementById('edit_station_code').value = 'CTG';
+                    document.getElementById('edit_station_city').value = 'Chittagong';
+                    document.getElementById('edit_station_state').value = 'Chittagong';
+                } else if (stationId == 3) { // Rajshahi
+                    document.getElementById('edit_station_name').value = 'Rajshahi Terminal';
+                    document.getElementById('edit_station_code').value = 'RJH';
+                    document.getElementById('edit_station_city').value = 'Rajshahi';
+                    document.getElementById('edit_station_state').value = 'Rajshahi';
+                }
             });
         });
 
@@ -177,7 +205,12 @@
             });
         });
 
-        // No code fields now
+        // Auto-uppercase station codes
+        document.querySelectorAll('input[id$="code"]').forEach(input => {
+            input.addEventListener('input', function () {
+                this.value = this.value.toUpperCase();
+            });
+        });
     </script>
 </body>
 

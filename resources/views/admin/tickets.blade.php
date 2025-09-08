@@ -16,22 +16,6 @@
     <div class="container mt-4">
         <h1>Ticket Management</h1>
 
-        @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        @endif
-        @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
-
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" id="searchInput" class="form-control w-25" placeholder="Search tickets...">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ticketModal">
@@ -53,36 +37,23 @@
                     </tr>
                 </thead>
                 <tbody id="ticketTableBody">
-                    @forelse($tickets as $t)
                     <tr>
-                        <td>{{ $t->ticket_id }}</td>
-                        <td>#{{ $t->booking_id }} - {{ $t->booking->user->name ?? '' }}</td>
-                        <td>#{{ $t->seat_id }} - {{ $t->seat->seat_number ?? '' }}</td>
-                        <td>{{ $t->compartment->class_name ?? '-' }}</td>
-                        <td>{{ optional($t->travel_date)->format('Y-m-d') }}</td>
-                        <td><span class="badge {{ $t->ticket_status==='active'?'bg-success':($t->ticket_status==='cancelled'?'bg-danger':'bg-secondary') }}">{{ ucfirst($t->ticket_status) }}</span></td>
+                        <td>1</td>
+                        <td>Booking #101 - Alice</td>
+                        <td>Ka</td>
+                        <td>AC</td>
+                        <td>2025-09-10</td>
+                        <td><span class="badge bg-success">Active</span></td>
                         <td>
                             <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-ticket-btn" data-bs-toggle="modal" data-bs-target="#ticketModal" data-ticket='@json($t)'>Edit</button>
-                                <form action="{{ route('admin.tickets.destroy', $t) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this ticket?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-danger delete-ticket-btn" type="submit">Delete</button>
-                                </form>
+                                <button class="btn btn-sm btn-warning edit-ticket-btn">Edit</button>
+                                <button class="btn btn-sm btn-danger delete-ticket-btn">Delete</button>
                             </div>
                         </td>
                     </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center">No tickets found</td>
-                    </tr>
-                    @endforelse
                 </tbody>
             </table>
         </div>
-        @isset($tickets)
-        <div class="mt-3">{{ $tickets->links() }}</div>
-        @endisset
     </div>
 
     <!-- Modal for Add/Edit Ticket -->
@@ -94,35 +65,29 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="ticketForm" method="POST">
-                        @csrf
-                        <input type="hidden" name="_method" id="ticketFormMethod" value="POST">
+                    <form id="ticketForm">
                         <div class="mb-3">
-                            <label>Booking ID</label>
-                            <input type="number" class="form-control" id="booking" name="booking_id" required>
+                            <label>Booking</label>
+                            <input type="text" class="form-control" id="booking">
                         </div>
                         <div class="mb-3">
-                            <label>Train ID</label>
-                            <input type="number" class="form-control" id="train" name="train_id" required>
+                            <label>Seat</label>
+                            <input type="text" class="form-control" id="seat">
                         </div>
                         <div class="mb-3">
-                            <label>Seat ID</label>
-                            <input type="number" class="form-control" id="seat" name="seat_id" required>
-                        </div>
-                        <div class="mb-3">
-                            <label>Compartment ID</label>
-                            <input type="number" class="form-control" id="compartment" name="compartment_id" required>
+                            <label>Class</label>
+                            <input type="text" class="form-control" id="class">
                         </div>
                         <div class="mb-3">
                             <label>Travel Date</label>
-                            <input type="date" class="form-control" id="date" name="travel_date" required>
+                            <input type="date" class="form-control" id="date">
                         </div>
                         <div class="mb-3">
                             <label>Status</label>
-                            <select class="form-select" id="status" name="ticket_status" required>
-                                <option value="active">Active</option>
-                                <option value="cancelled">Cancelled</option>
-                                <option value="used">Used</option>
+                            <select class="form-select" id="status">
+                                <option value="Active">Active</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="Used">Used</option>
                             </select>
                         </div>
                         <button type="submit" class="btn btn-primary">Save</button>
@@ -139,6 +104,7 @@
         const ticketTableBody = document.getElementById('ticketTableBody');
         const ticketForm = document.getElementById('ticketForm');
         const modalTitle = document.getElementById('modalTitle');
+        let currentEditRow = null;
 
         // Search tickets
         searchInput.addEventListener('keyup', () => {
@@ -148,28 +114,18 @@
             });
         });
 
-        // Populate edit
-        document.querySelectorAll('.edit-ticket-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const t = JSON.parse(this.getAttribute('data-ticket'));
+        // Open modal for edit
+        ticketTableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-ticket-btn')) {
+                currentEditRow = e.target.closest('tr');
                 modalTitle.textContent = 'Edit Ticket';
-                ticketForm.action = `/adminpanel/tickets/${t.ticket_id}`;
-                document.getElementById('ticketFormMethod').value = 'PUT';
-                document.getElementById('booking').value = t.booking_id;
-                document.getElementById('train').value = t.train_id;
-                document.getElementById('seat').value = t.seat_id;
-                document.getElementById('compartment').value = t.compartment_id;
-                document.getElementById('date').value = t.travel_date;
-                document.getElementById('status').value = t.ticket_status;
-            });
-        });
-
-        // Default add
-        document.querySelector('[data-bs-target="#ticketModal"]').addEventListener('click', () => {
-            modalTitle.textContent = 'Add Ticket';
-            ticketForm.action = `{{ route('admin.tickets.store') }}`;
-            document.getElementById('ticketFormMethod').value = 'POST';
-            ticketForm.reset();
+                document.getElementById('booking').value = currentEditRow.cells[1].textContent;
+                document.getElementById('seat').value = currentEditRow.cells[2].textContent;
+                document.getElementById('class').value = currentEditRow.cells[3].textContent;
+                document.getElementById('date').value = currentEditRow.cells[4].textContent;
+                document.getElementById('status').value = currentEditRow.cells[5].textContent.trim();
+                new bootstrap.Modal(document.getElementById('ticketModal')).show();
+            }
         });
 
         // Delete ticket

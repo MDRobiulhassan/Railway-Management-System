@@ -17,22 +17,6 @@
     <div class="container">
         <h1 class="mb-4">Booking Management</h1>
 
-        @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        @endif
-        @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
-
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" id="searchInput" class="form-control w-25" placeholder="Search bookings...">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal">
@@ -54,37 +38,35 @@
                     </tr>
                 </thead>
                 <tbody id="bookingTableBody">
-                    @forelse($bookings as $b)
+                    <!-- Example row -->
                     <tr>
-                        <td>{{ $b->booking_id }}</td>
-                        <td>#{{ $b->user_id }} - {{ $b->user->name ?? 'User' }}</td>
-                        <td>#{{ $b->train_id }} - {{ $b->train->train_name ?? 'Train' }}</td>
-                        <td>{{ optional($b->booking_date)->format('Y-m-d H:i') }}</td>
+                        <td>1</td>
+                        <td>101</td>
+                        <td>501</td>
+                        <td>2025-09-02 10:30</td>
+                        <td><span class="badge bg-success">Confirmed</span></td>
+                        <td>250.00</td>
                         <td>
-                            @php $badge = $b->status==='confirmed'?'success':($b->status==='cancelled'?'danger':'warning'); @endphp
-                            <span class="badge bg-{{ $badge }}">{{ ucfirst($b->status) }}</span>
-                        </td>
-                        <td>{{ number_format($b->total_amount,2) }}</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#addBookingModal" data-booking='@json($b)'>Edit</button>
-                            <form action="{{ route('admin.bookings.destroy', $b) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this booking?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-sm btn-danger" type="submit">Delete</button>
-                            </form>
+                            <button class="btn btn-sm btn-warning">Edit</button>
+                            <button class="btn btn-sm btn-danger">Delete</button>
                         </td>
                     </tr>
-                    @empty
                     <tr>
-                        <td colspan="7" class="text-center">No bookings found</td>
+                        <td>2</td>
+                        <td>102</td>
+                        <td>502</td>
+                        <td>2025-09-03 14:00</td>
+                        <td><span class="badge bg-warning">Pending</span></td>
+                        <td>180.00</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning">Edit</button>
+                            <button class="btn btn-sm btn-danger">Delete</button>
+                        </td>
                     </tr>
-                    @endforelse
+                    <!-- Rows will be dynamically added here -->
                 </tbody>
             </table>
         </div>
-        @isset($bookings)
-        <div class="mt-3">{{ $bookings->links() }}</div>
-        @endisset
     </div>
 
     <!-- Add Booking Modal -->
@@ -92,29 +74,31 @@
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="addBookingForm" method="POST">
-                    @csrf
-                    <input type="hidden" name="_method" id="bookingFormMethod" value="PUT">
+                <form id="addBookingForm">
                     <div class="modal-header">
                         <h5 class="modal-title" id="addBookingModalLabel">Add Booking</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
+                            <label for="booking_id" class="form-label">Booking ID</label>
+                            <input type="number" class="form-control" id="booking_id" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="user_id" class="form-label">User ID</label>
-                            <input type="number" class="form-control" id="user_id" name="user_id" required>
+                            <input type="number" class="form-control" id="user_id" required>
                         </div>
                         <div class="mb-3">
                             <label for="train_id" class="form-label">Train ID</label>
-                            <input type="number" class="form-control" id="train_id" name="train_id" required>
+                            <input type="number" class="form-control" id="train_id" required>
                         </div>
                         <div class="mb-3">
                             <label for="booking_date" class="form-label">Booking Date</label>
-                            <input type="datetime-local" class="form-control" id="booking_date" name="booking_date" required>
+                            <input type="datetime-local" class="form-control" id="booking_date" required>
                         </div>
                         <div class="mb-3">
                             <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status" required>
+                            <select class="form-select" id="status" required>
                                 <option value="pending">Pending</option>
                                 <option value="confirmed">Confirmed</option>
                                 <option value="cancelled">Cancelled</option>
@@ -122,7 +106,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="total_amount" class="form-label">Total Amount</label>
-                            <input type="number" class="form-control" id="total_amount" name="total_amount" step="0.01" min="0" required>
+                            <input type="number" class="form-control" id="total_amount" step="0.01" min="0" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -136,32 +120,46 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        const bookingTableBody = document.getElementById('bookingTableBody');
+        const addBookingForm = document.getElementById('addBookingForm');
+
+        addBookingForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const bookingId = document.getElementById('booking_id').value;
+            const userId = document.getElementById('user_id').value;
+            const trainId = document.getElementById('train_id').value;
+            const bookingDate = document.getElementById('booking_date').value;
+            const status = document.getElementById('status').value;
+            const totalAmount = document.getElementById('total_amount').value;
+
+            const statusBadge = status === 'confirmed' ? 'success' :
+                status === 'cancelled' ? 'danger' : 'warning';
+
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${bookingId}</td>
+                <td>${userId}</td>
+                <td>${trainId}</td>
+                <td>${bookingDate}</td>
+                <td><span class="badge bg-${statusBadge}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+                <td>${parseFloat(totalAmount).toFixed(2)}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning">Edit</button>
+                    <button class="btn btn-sm btn-danger">Delete</button>
+                </td>
+            `;
+            bookingTableBody.appendChild(newRow);
+            addBookingForm.reset();
+            const addModal = bootstrap.Modal.getInstance(document.getElementById('addBookingModal'));
+            addModal.hide();
+        });
+
         // Search functionality
         document.getElementById('searchInput').addEventListener('keyup', function () {
             const term = this.value.toLowerCase();
-            document.getElementById('bookingTableBody').querySelectorAll('tr').forEach(row => {
+            bookingTableBody.querySelectorAll('tr').forEach(row => {
                 const rowText = row.textContent.toLowerCase();
                 row.style.display = rowText.includes(term) ? '' : 'none';
-            });
-        });
-
-        // Fill edit form
-        document.querySelectorAll('[data-booking]').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const b = JSON.parse(this.getAttribute('data-booking'));
-                const form = document.getElementById('addBookingForm');
-                form.action = `/adminpanel/bookings/${b.booking_id}`;
-                document.getElementById('bookingFormMethod').value = 'PUT';
-                document.getElementById('user_id').value = b.user_id;
-                document.getElementById('train_id').value = b.train_id;
-                const dt = new Date(b.booking_date);
-                const pad = n => String(n).padStart(2,'0');
-                const local = `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
-                document.getElementById('booking_date').value = local;
-                document.getElementById('status').value = b.status;
-                document.getElementById('total_amount').value = b.total_amount;
-                document.getElementById('addBookingModalLabel').textContent = 'Edit Booking';
-                form.querySelector('.btn-success').textContent = 'Update Booking';
             });
         });
     </script>

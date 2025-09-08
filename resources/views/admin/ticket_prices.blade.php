@@ -27,21 +27,6 @@
 <body>
     <div class="container mt-4">
         <h1>Train Ticket Price Management</h1>
-        @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        @endif
-        @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-        @endif
 
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" id="searchInput" class="form-control w-25" placeholder="Search prices...">
@@ -62,34 +47,45 @@
                     </tr>
                 </thead>
                 <tbody id="priceTableBody">
-                    @forelse($prices as $p)
                     <tr>
-                        <td>{{ $p->price_id }}</td>
-                        <td>#{{ $p->train_id }} - {{ $p->train->train_name ?? '' }}</td>
-                        <td>#{{ $p->compartment_id }} - {{ $p->compartment->compartment_name ?? '' }}</td>
-                        <td>{{ number_format($p->base_price,2) }} BDT</td>
+                        <td>1</td>
+                        <td>101</td>
+                        <td>AC</td>
+                        <td>50.00BDT</td>
                         <td>
                             <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-price-btn" data-bs-toggle="modal" data-bs-target="#priceModal" data-price='@json($p)'>Edit</button>
-                                <form action="{{ route('admin.ticket_prices.destroy', $p) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this price?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-danger delete-price-btn" type="submit">Delete</button>
-                                </form>
+                                <button class="btn btn-sm btn-warning edit-price-btn">Edit</button>
+                                <button class="btn btn-sm btn-danger delete-price-btn">Delete</button>
                             </div>
                         </td>
                     </tr>
-                    @empty
                     <tr>
-                        <td colspan="5" class="text-center">No prices found</td>
+                        <td>2</td>
+                        <td>101</td>
+                        <td>Shovan</td>
+                        <td>80.00BDT</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-warning edit-price-btn">Edit</button>
+                                <button class="btn btn-sm btn-danger delete-price-btn">Delete</button>
+                            </div>
+                        </td>
                     </tr>
-                    @endforelse
+                    <tr>
+                        <td>3</td>
+                        <td>101</td>
+                        <td>Snigdha</td>
+                        <td>80.00BDT</td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-warning edit-price-btn">Edit</button>
+                                <button class="btn btn-sm btn-danger delete-price-btn">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
-        @isset($prices)
-        <div class="mt-3">{{ $prices->links() }}</div>
-        @endisset
     </div>
 
     <!-- Modal for Add/Edit Price -->
@@ -101,20 +97,23 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="priceForm" method="POST">
-                        @csrf
-                        <input type="hidden" name="_method" id="priceFormMethod" value="POST">
+                    <form id="priceForm">
                         <div class="mb-3">
                             <label>Train ID</label>
-                            <input type="number" class="form-control" id="train_id" name="train_id" required>
+                            <input type="text" class="form-control" id="train_id" required>
                         </div>
                         <div class="mb-3">
-                            <label>Compartment ID</label>
-                            <input type="number" class="form-control" id="compartment_id" name="compartment_id" required>
+                            <label>Compartment</label>
+                            <select class="form-select" id="compartment_id" required>
+                                <option value="Economy">AC</option>
+                                <option value="Business">Shovan</option>
+                                <option value="First">Snigdha</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label>Base Price</label>
-                            <input type="number" class="form-control" id="base_price" name="base_price" min="0" step="0.01" placeholder="0.00" required>
+                            <input type="number" class="form-control" id="base_price" min="0" step="0.01"
+                                placeholder="0.00">
                         </div>
                         <div class="text-end">
                             <button type="submit" class="btn btn-primary">Save</button>
@@ -131,6 +130,7 @@
         const priceTableBody = document.getElementById('priceTableBody');
         const priceForm = document.getElementById('priceForm');
         const modalTitle = document.getElementById('modalTitle');
+        let currentEditRow = null;
 
         // Search
         document.getElementById('searchInput').addEventListener('keyup', () => {
@@ -149,25 +149,16 @@
             }
         });
 
-        // Populate edit
-        document.querySelectorAll('.edit-price-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const p = JSON.parse(this.getAttribute('data-price'));
+        // Edit
+        priceTableBody.addEventListener('click', e => {
+            if (e.target.classList.contains('edit-price-btn')) {
+                currentEditRow = e.target.closest('tr');
                 modalTitle.textContent = 'Edit Ticket Price';
-                priceForm.action = `/adminpanel/ticket_prices/${p.price_id}`;
-                document.getElementById('priceFormMethod').value = 'PUT';
-                document.getElementById('train_id').value = p.train_id;
-                document.getElementById('compartment_id').value = p.compartment_id;
-                document.getElementById('base_price').value = p.base_price;
-            });
-        });
-
-        // Default add
-        document.querySelector('[data-bs-target="#priceModal"]').addEventListener('click', () => {
-            modalTitle.textContent = 'Add Ticket Price';
-            priceForm.action = `{{ route('admin.ticket_prices.store') }}`;
-            document.getElementById('priceFormMethod').value = 'POST';
-            priceForm.reset();
+                document.getElementById('train_id').value = currentEditRow.cells[1].textContent;
+                document.getElementById('compartment_id').value = currentEditRow.cells[2].textContent;
+                document.getElementById('base_price').value = parseFloat(currentEditRow.cells[3].textContent.replace('$', ''));
+                new bootstrap.Modal(document.getElementById('priceModal')).show();
+            }
         });
 
         // Save/Add
