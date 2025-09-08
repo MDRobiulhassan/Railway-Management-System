@@ -16,6 +16,22 @@
     <div class="container">
         <h1>Train Management</h1>
 
+        @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        @endif
+        @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" class="form-control w-25" id="searchInput" placeholder="Search trains...">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTrainModal">
@@ -35,58 +51,48 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @forelse($trains as $t)
                     <tr>
-                        <td>1</td>
-                        <td>Express 101</td>
-                        <td>300</td>
-                        <td><span class="badge bg-success">Active</span></td>
+                        <td>{{ $t->train_id }}</td>
+                        <td>{{ $t->train_name }}</td>
+                        <td>{{ $t->total_seats }}</td>
+                        <td>
+                            @php
+                                $status = strtolower($t->train_type ?? '');
+                                $cls = $status === 'active' ? 'success' : ($status === 'maintenance' ? 'warning' : ($status === 'retired' ? 'danger' : 'secondary'));
+                            @endphp
+                            <span class="badge bg-{{ $cls }}">{{ ucfirst($status ?: 'Unknown') }}</span>
+                        </td>
                         <td>
                             <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
-                                    data-bs-target="#editTrainModal" data-train="1">Edit</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this train?')">Delete</button>
+                                <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal" data-bs-target="#editTrainModal" data-train='@json($t)'>Edit</button>
+                                <form action="{{ route('admin.trains.destroy', $t) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this train?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-danger" type="submit">Delete</button>
+                                </form>
                             </div>
                         </td>
                     </tr>
+                    @empty
                     <tr>
-                        <td>2</td>
-                        <td>InterCity 202</td>
-                        <td>250</td>
-                        <td><span class="badge bg-warning">Maintenance</span></td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
-                                    data-bs-target="#editTrainModal" data-train="2">Edit</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this train?')">Delete</button>
-                            </div>
-                        </td>
+                        <td colspan="5" class="text-center">No trains found</td>
                     </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Local 303</td>
-                        <td>150</td>
-                        <td><span class="badge bg-danger">Retired</span></td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
-                                    data-bs-target="#editTrainModal" data-train="3">Edit</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this train?')">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
+        @isset($trains)
+        <div class="mt-3">{{ $trains->links() }}</div>
+        @endisset
     </div>
 
     <!-- Add Train Modal -->
     <div class="modal fade" id="addTrainModal" tabindex="-1" aria-labelledby="addTrainModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form>
+                <form method="POST" action="{{ route('admin.trains.store') }}">
+                    @csrf
                     <div class="modal-header">
                         <h5 class="modal-title" id="addTrainModalLabel">Add New Train</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -94,19 +100,19 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="train_name" class="form-label">Train Name</label>
-                            <input type="text" class="form-control" id="train_name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="train_total_seats" class="form-label">Total Seats</label>
-                            <input type="number" class="form-control" id="train_total_seats" required min="1">
+                            <input type="text" class="form-control" id="train_name" name="train_name" required>
                         </div>
                         <div class="mb-3">
                             <label for="train_status" class="form-label">Status</label>
-                            <select class="form-select" id="train_status" required>
-                                <option value="active" selected>Active</option>
+                            <select class="form-select" id="train_status" name="train_type" required>
+                                <option value="active">Active</option>
                                 <option value="maintenance">Maintenance</option>
                                 <option value="retired">Retired</option>
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="train_total_seats" class="form-label">Total Seats</label>
+                            <input type="number" class="form-control" id="train_total_seats" name="total_seats" required min="1">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -122,7 +128,9 @@
     <div class="modal fade" id="editTrainModal" tabindex="-1" aria-labelledby="editTrainModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="editTrainForm">
+                <form id="editTrainForm" method="POST">
+                    @csrf
+                    @method('PUT')
                     <div class="modal-header">
                         <h5 class="modal-title" id="editTrainModalLabel">Edit Train</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -130,19 +138,19 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="edit_train_name" class="form-label">Train Name</label>
-                            <input type="text" class="form-control" id="edit_train_name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_train_total_seats" class="form-label">Total Seats</label>
-                            <input type="number" class="form-control" id="edit_train_total_seats" required min="1">
+                            <input type="text" class="form-control" id="edit_train_name" name="train_name" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit_train_status" class="form-label">Status</label>
-                            <select class="form-select" id="edit_train_status" required>
+                            <select class="form-select" id="edit_train_status" name="train_type" required>
                                 <option value="active">Active</option>
                                 <option value="maintenance">Maintenance</option>
                                 <option value="retired">Retired</option>
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="edit_train_total_seats" class="form-label">Total Seats</label>
+                            <input type="number" class="form-control" id="edit_train_total_seats" name="total_seats" required min="1">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -167,22 +175,14 @@
             });
         });
 
-        // Edit train functionality (simulated fetch)
-        const trainData = {
-            1: { name: 'Express 101', total_seats: 300, status: 'active' },
-            2: { name: 'InterCity 202', total_seats: 250, status: 'maintenance' },
-            3: { name: 'Local 303', total_seats: 150, status: 'retired' }
-        };
-
+        // Edit train populate
         document.querySelectorAll('.edit-train-btn').forEach(button => {
             button.addEventListener('click', function () {
-                const trainId = this.getAttribute('data-train');
-                const train = trainData[trainId];
-
-                document.getElementById('editTrainForm').action = `/trains/${trainId}`;
-                document.getElementById('edit_train_name').value = train.name;
+                const train = JSON.parse(this.getAttribute('data-train'));
+                document.getElementById('editTrainForm').action = `/adminpanel/trains/${train.train_id}`;
+                document.getElementById('edit_train_name').value = train.train_name;
+                document.getElementById('edit_train_status').value = (train.train_type || '').toLowerCase();
                 document.getElementById('edit_train_total_seats').value = train.total_seats;
-                document.getElementById('edit_train_status').value = train.status;
             });
         });
 
