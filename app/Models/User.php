@@ -54,4 +54,14 @@ class User extends Authenticatable
             'nid_verified' => 'boolean',
         ];
     }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'user_id', 'user_id');
+    }
+
+    public function nidRecord()
+    {
+        return $this->hasOne(NidDb::class, 'nid_number', 'nid_number');
+    }
 }

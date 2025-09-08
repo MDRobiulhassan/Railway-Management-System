@@ -12,9 +12,9 @@
 </head>
 
 <body>
-    <x-navbar/>
+    <x-navbar />
 
-    <div class="container">
+    <div class="container mt-4">
         <h1 class="mb-4">Booking Management</h1>
 
         <div class="mb-3 d-flex justify-content-between align-items-center">
@@ -29,8 +29,8 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Booking ID</th>
-                        <th>User ID</th>
-                        <th>Train ID</th>
+                        <th>User Name</th>
+                        <th>Train Name</th>
                         <th>Booking Date</th>
                         <th>Status</th>
                         <th>Total Amount</th>
@@ -41,8 +41,8 @@
                     <!-- Example row -->
                     <tr>
                         <td>1</td>
-                        <td>101</td>
-                        <td>501</td>
+                        <td>John Doe</td>
+                        <td>Express 101</td>
                         <td>2025-09-02 10:30</td>
                         <td><span class="badge bg-success">Confirmed</span></td>
                         <td>250.00</td>
@@ -53,8 +53,8 @@
                     </tr>
                     <tr>
                         <td>2</td>
-                        <td>102</td>
-                        <td>502</td>
+                        <td>Jane Smith</td>
+                        <td>Local 202</td>
                         <td>2025-09-03 14:00</td>
                         <td><span class="badge bg-warning">Pending</span></td>
                         <td>180.00</td>
@@ -63,7 +63,6 @@
                             <button class="btn btn-sm btn-danger">Delete</button>
                         </td>
                     </tr>
-                    <!-- Rows will be dynamically added here -->
                 </tbody>
             </table>
         </div>
@@ -85,19 +84,25 @@
                             <input type="number" class="form-control" id="booking_id" required>
                         </div>
                         <div class="mb-3">
-                            <label for="user_id" class="form-label">User ID</label>
-                            <input type="number" class="form-control" id="user_id" required>
+                            <label for="user_name" class="form-label">User Name</label>
+                            <input type="text" class="form-control" id="user_name" required>
                         </div>
                         <div class="mb-3">
-                            <label for="train_id" class="form-label">Train ID</label>
-                            <input type="number" class="form-control" id="train_id" required>
+                            <label for="train_name" class="form-label">Train Name</label>
+                            <select class="form-select" id="train_name" required>
+                                <option value="" disabled selected>Select Train</option>
+                                <option value="Express 101">Express 101</option>
+                                <option value="Local 202">Local 202</option>
+                                <option value="Fast Track 303">Fast Track 303</option>
+                                <!-- Add more trains as needed -->
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label for="booking_date" class="form-label">Booking Date</label>
                             <input type="datetime-local" class="form-control" id="booking_date" required>
                         </div>
                         <div class="mb-3">
-                            <label for="status" class="form-label">Status</label>
+                            <label for="status" class="form-label">Payment Status</label>
                             <select class="form-select" id="status" required>
                                 <option value="pending">Pending</option>
                                 <option value="confirmed">Confirmed</option>
@@ -125,9 +130,10 @@
 
         addBookingForm.addEventListener('submit', function (e) {
             e.preventDefault();
+
             const bookingId = document.getElementById('booking_id').value;
-            const userId = document.getElementById('user_id').value;
-            const trainId = document.getElementById('train_id').value;
+            const userName = document.getElementById('user_name').value;
+            const trainName = document.getElementById('train_name').value;
             const bookingDate = document.getElementById('booking_date').value;
             const status = document.getElementById('status').value;
             const totalAmount = document.getElementById('total_amount').value;
@@ -138,8 +144,8 @@
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>${bookingId}</td>
-                <td>${userId}</td>
-                <td>${trainId}</td>
+                <td>${userName}</td>
+                <td>${trainName}</td>
                 <td>${bookingDate}</td>
                 <td><span class="badge bg-${statusBadge}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
                 <td>${parseFloat(totalAmount).toFixed(2)}</td>
@@ -149,6 +155,7 @@
                 </td>
             `;
             bookingTableBody.appendChild(newRow);
+
             addBookingForm.reset();
             const addModal = bootstrap.Modal.getInstance(document.getElementById('addBookingModal'));
             addModal.hide();

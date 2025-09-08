@@ -12,7 +12,7 @@
 </head>
 
 <body>
-    <x-navbar/>
+    <x-navbar />
     <div class="container mt-4">
         <h1>Ticket Management</h1>
 
@@ -28,8 +28,10 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Ticket ID</th>
-                        <th>Booking</th>
+                        <th>Booking ID</th>
+                        <th>Booking Name</th>
                         <th>Seat</th>
+                        <th>Compartment</th>
                         <th>Class</th>
                         <th>Travel Date</th>
                         <th>Status</th>
@@ -39,10 +41,12 @@
                 <tbody id="ticketTableBody">
                     <tr>
                         <td>1</td>
-                        <td>Booking #101 - Alice</td>
+                        <td>101</td>
+                        <td>Alice</td>
+                        <td>1</td>
                         <td>Ka</td>
                         <td>AC</td>
-                        <td>2025-09-10</td>
+                        <td>2025-09-10 09:00</td>
                         <td><span class="badge bg-success">Active</span></td>
                         <td>
                             <div class="btn-group">
@@ -68,19 +72,46 @@
                     <form id="ticketForm">
                         <div class="mb-3">
                             <label>Booking</label>
-                            <input type="text" class="form-control" id="booking">
+                            <select class="form-select" id="booking_id" required>
+                                <option value="101" data-name="Alice">Booking #101 - Alice</option>
+                                <option value="102" data-name="Bob">Booking #102 - Bob</option>
+                                <option value="103" data-name="Charlie">Booking #103 - Charlie</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label>Seat</label>
-                            <input type="text" class="form-control" id="seat">
+                            <select class="form-select" id="seat_name" required>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Compartment</label>
+                            <select class="form-select" id="compartment_name" required>
+                                <option value="Ka">Ka</option>
+                                <option value="Kha">Kha</option>
+                                <option value="Ga">Ga</option>
+                                <option value="Gha">Gha</option>
+                                <option value="Uma">Uma</option>
+                                <option value="Cha">Cha</option>
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label>Class</label>
-                            <input type="text" class="form-control" id="class">
+                            <input type="text" class="form-control" id="class_name" readonly>
                         </div>
                         <div class="mb-3">
-                            <label>Travel Date</label>
-                            <input type="date" class="form-control" id="date">
+                            <label>Travel Date & Time</label>
+                            <input type="datetime-local" class="form-control" id="travel_date" required>
                         </div>
                         <div class="mb-3">
                             <label>Status</label>
@@ -100,32 +131,31 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const searchInput = document.getElementById('searchInput');
         const ticketTableBody = document.getElementById('ticketTableBody');
         const ticketForm = document.getElementById('ticketForm');
         const modalTitle = document.getElementById('modalTitle');
+
+        const compartmentMap = { 'Ka': 'AC', 'Kha': 'AC', 'Ga': 'Snigdha', 'Gha': 'Snigdha', 'Uma': 'Shovan', 'Cha': 'Shovan' };
+
+        const compartmentSelect = document.getElementById('compartment_name');
+        const classInput = document.getElementById('class_name');
+        const bookingSelect = document.getElementById('booking_id');
+
         let currentEditRow = null;
 
+        // Auto-set class based on compartment
+        compartmentSelect.addEventListener('change', () => {
+            classInput.value = compartmentMap[compartmentSelect.value];
+        });
+
+        classInput.value = compartmentMap[compartmentSelect.value];
+
         // Search tickets
-        searchInput.addEventListener('keyup', () => {
-            const term = searchInput.value.toLowerCase();
+        document.getElementById('searchInput').addEventListener('keyup', () => {
+            const term = document.getElementById('searchInput').value.toLowerCase();
             ticketTableBody.querySelectorAll('tr').forEach(row => {
                 row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
             });
-        });
-
-        // Open modal for edit
-        ticketTableBody.addEventListener('click', (e) => {
-            if (e.target.classList.contains('edit-ticket-btn')) {
-                currentEditRow = e.target.closest('tr');
-                modalTitle.textContent = 'Edit Ticket';
-                document.getElementById('booking').value = currentEditRow.cells[1].textContent;
-                document.getElementById('seat').value = currentEditRow.cells[2].textContent;
-                document.getElementById('class').value = currentEditRow.cells[3].textContent;
-                document.getElementById('date').value = currentEditRow.cells[4].textContent;
-                document.getElementById('status').value = currentEditRow.cells[5].textContent.trim();
-                new bootstrap.Modal(document.getElementById('ticketModal')).show();
-            }
         });
 
         // Delete ticket
@@ -137,44 +167,76 @@
             }
         });
 
+        // Edit ticket
+        ticketTableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-ticket-btn')) {
+                currentEditRow = e.target.closest('tr');
+                modalTitle.textContent = 'Edit Ticket';
+
+                const bookingId = currentEditRow.cells[1].textContent;
+                const bookingName = currentEditRow.cells[2].textContent;
+                for (let option of bookingSelect.options) {
+                    if (option.value === bookingId) {
+                        option.selected = true;
+                        break;
+                    }
+                }
+
+                document.getElementById('seat_name').value = currentEditRow.cells[3].textContent;
+                compartmentSelect.value = currentEditRow.cells[4].textContent;
+                classInput.value = currentEditRow.cells[5].textContent;
+                document.getElementById('travel_date').value = currentEditRow.cells[6].textContent;
+                document.getElementById('status').value = currentEditRow.cells[7].textContent.trim();
+
+                new bootstrap.Modal(document.getElementById('ticketModal')).show();
+            }
+        });
+
         // Save changes or add new ticket
         ticketForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const booking = document.getElementById('booking').value;
-            const seat = document.getElementById('seat').value;
-            const cls = document.getElementById('class').value;
-            const date = document.getElementById('date').value;
+            const bookingOption = bookingSelect.selectedOptions[0];
+            const bookingId = bookingOption.value;
+            const bookingName = bookingOption.dataset.name;
+            const seat = document.getElementById('seat_name').value;
+            const compartment = compartmentSelect.value;
+            const cls = classInput.value;
+            const travelDate = document.getElementById('travel_date').value;
             const status = document.getElementById('status').value;
             const badgeClass = status === 'Active' ? 'bg-success' : status === 'Cancelled' ? 'bg-danger' : 'bg-secondary';
 
             if (currentEditRow) {
-                // Edit existing
-                currentEditRow.cells[1].textContent = booking;
-                currentEditRow.cells[2].textContent = seat;
-                currentEditRow.cells[3].textContent = cls;
-                currentEditRow.cells[4].textContent = date;
-                currentEditRow.cells[5].innerHTML = `<span class="badge ${badgeClass}">${status}</span>`;
+                currentEditRow.cells[1].textContent = bookingId;
+                currentEditRow.cells[2].textContent = bookingName;
+                currentEditRow.cells[3].textContent = seat;
+                currentEditRow.cells[4].textContent = compartment;
+                currentEditRow.cells[5].textContent = cls;
+                currentEditRow.cells[6].textContent = travelDate;
+                currentEditRow.cells[7].innerHTML = `<span class="badge ${badgeClass}">${status}</span>`;
             } else {
-                // Add new
                 const newRow = ticketTableBody.insertRow();
-                const id = ticketTableBody.rows.length;
+                const id = ticketTableBody.rows.length + 1;
                 newRow.innerHTML = `
-            <td>${id}</td>
-            <td>${booking}</td>
-            <td>${seat}</td>
-            <td>${cls}</td>
-            <td>${date}</td>
-            <td><span class="badge ${badgeClass}">${status}</span></td>
-            <td>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-warning edit-ticket-btn">Edit</button>
-                    <button class="btn btn-sm btn-danger delete-ticket-btn">Delete</button>
-                </div>
-            </td>`;
+                <td>${id}</td>
+                <td>${bookingId}</td>
+                <td>${bookingName}</td>
+                <td>${seat}</td>
+                <td>${compartment}</td>
+                <td>${cls}</td>
+                <td>${travelDate}</td>
+                <td><span class="badge ${badgeClass}">${status}</span></td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-warning edit-ticket-btn">Edit</button>
+                        <button class="btn btn-sm btn-danger delete-ticket-btn">Delete</button>
+                    </div>
+                </td>`;
             }
+
             currentEditRow = null;
             modalTitle.textContent = 'Add Ticket';
             ticketForm.reset();
+            classInput.value = compartmentMap[compartmentSelect.value];
             bootstrap.Modal.getInstance(document.getElementById('ticketModal')).hide();
         });
     </script>

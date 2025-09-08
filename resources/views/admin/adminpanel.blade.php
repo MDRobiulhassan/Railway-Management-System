@@ -159,7 +159,7 @@
 
             <!-- Catering Orders -->
             <div class="col-md-3">
-                <a href="{{ route('admin.food_items') }}" class="text-decoration-none">
+                <a href="{{ route('admin.food_order') }}" class="text-decoration-none">
                     <div class="card text-center p-3 hover-effect">
                         <i class="fa-solid fa-burger"></i>
                         <h5 class="card-title">Food Orders</h5>

@@ -13,7 +13,7 @@
 <body>
     <x-navbar />
 
-    <div class="container">
+    <div class="container mt-4">
         <h1>Food Order Management</h1>
 
         <form id="addOrderFormUI" class="mb-3 d-flex justify-content-between align-items-center">
@@ -30,6 +30,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Order ID</th>
+                        <th>Booking ID</th>
                         <th>Booking</th>
                         <th>Food Item</th>
                         <th>Quantity</th>
@@ -41,7 +42,8 @@
                     <!-- Example row -->
                     <tr>
                         <td>1</td>
-                        <td>#101 - John Doe</td>
+                        <td>#101</td>
+                        <td>John Doe</td>
                         <td>Pizza</td>
                         <td>2</td>
                         <td>$20.00</td>
@@ -66,22 +68,30 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Booking Dropdown -->
                         <div class="mb-3">
                             <label class="form-label">Booking</label>
-                            <input type="text" id="booking_input" class="form-control"
-                                placeholder="#BookingID - User Name">
+                            <select id="booking_select" class="form-select" required>
+                                <option value="" disabled selected>Select Booking</option>
+                                <option value="#101|John Doe">#101 - John Doe</option>
+                                <option value="#102|Jane Smith">#102 - Jane Smith</option>
+                                <option value="#103|Mark Lee">#103 - Mark Lee</option>
+                                <!-- Add more bookings here -->
+                            </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Food Item</label>
-                            <input type="text" id="food_input" class="form-control" placeholder="Food Name">
+                            <input type="text" id="food_input" class="form-control" placeholder="Food Name" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Quantity</label>
-                            <input type="number" id="quantity_input" class="form-control" min="1" value="1">
+                            <input type="number" id="quantity_input" class="form-control" min="1" value="1" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Price per Unit</label>
-                            <input type="number" id="price_input" class="form-control" min="0" step="0.01" value="0.00">
+                            <input type="number" id="price_input" class="form-control" min="0" step="0.01" value="0.00"
+                                required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -103,21 +113,29 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Booking Dropdown -->
                         <div class="mb-3">
                             <label class="form-label">Booking</label>
-                            <input type="text" id="edit_booking_input" class="form-control">
+                            <select id="edit_booking_select" class="form-select" required>
+                                <option value="" disabled>Select Booking</option>
+                                <option value="#101|John Doe">#101 - John Doe</option>
+                                <option value="#102|Jane Smith">#102 - Jane Smith</option>
+                                <option value="#103|Mark Lee">#103 - Mark Lee</option>
+                            </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Food Item</label>
-                            <input type="text" id="edit_food_input" class="form-control">
+                            <input type="text" id="edit_food_input" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Quantity</label>
-                            <input type="number" id="edit_quantity_input" class="form-control" min="1">
+                            <input type="number" id="edit_quantity_input" class="form-control" min="1" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Price per Unit</label>
-                            <input type="number" id="edit_price_input" class="form-control" min="0" step="0.01">
+                            <input type="number" id="edit_price_input" class="form-control" min="0" step="0.01"
+                                required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -134,7 +152,7 @@
         const ordersTableBody = document.getElementById('ordersTableBody');
         let currentEditRow = null;
 
-        // Search
+        // Search functionality
         document.getElementById('searchInput').addEventListener('keyup', function () {
             const term = this.value.toLowerCase();
             ordersTableBody.querySelectorAll('tr').forEach(row => {
@@ -145,16 +163,19 @@
         // Add Order
         document.getElementById('addOrderForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            const booking = document.getElementById('booking_input').value || '-';
-            const food = document.getElementById('food_input').value || '-';
-            const quantity = parseInt(document.getElementById('quantity_input').value) || 1;
-            const price = parseFloat(document.getElementById('price_input').value) || 0;
+            const bookingValue = document.getElementById('booking_select').value.split('|');
+            const bookingID = bookingValue[0];
+            const bookingName = bookingValue[1];
+            const food = document.getElementById('food_input').value;
+            const quantity = parseInt(document.getElementById('quantity_input').value);
+            const price = parseFloat(document.getElementById('price_input').value);
             const total = (quantity * price).toFixed(2);
 
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${ordersTableBody.children.length + 1}</td>
-                <td>${booking}</td>
+                <td>${bookingID}</td>
+                <td>${bookingName}</td>
                 <td>${food}</td>
                 <td>${quantity}</td>
                 <td>$${total}</td>
@@ -168,15 +189,15 @@
             bootstrap.Modal.getInstance(document.getElementById('addOrderModal')).hide();
         });
 
-        // Edit/Delete
+        // Edit/Delete functionality
         ordersTableBody.addEventListener('click', function (e) {
             const row = e.target.closest('tr');
             if (e.target.classList.contains('edit-btn')) {
                 currentEditRow = row;
-                document.getElementById('edit_booking_input').value = row.children[1].textContent;
-                document.getElementById('edit_food_input').value = row.children[2].textContent;
-                document.getElementById('edit_quantity_input').value = row.children[3].textContent;
-                document.getElementById('edit_price_input').value = (parseFloat(row.children[4].textContent.replace('$', '')) / parseInt(row.children[3].textContent)).toFixed(2);
+                document.getElementById('edit_booking_select').value = row.children[1].textContent + '|' + row.children[2].textContent;
+                document.getElementById('edit_food_input').value = row.children[3].textContent;
+                document.getElementById('edit_quantity_input').value = row.children[4].textContent;
+                document.getElementById('edit_price_input').value = (parseFloat(row.children[5].textContent.replace('$', '')) / parseInt(row.children[4].textContent)).toFixed(2);
             }
             if (e.target.classList.contains('delete-btn')) {
                 if (confirm('Delete this order?')) row.remove();
@@ -187,16 +208,19 @@
         document.getElementById('editOrderForm').addEventListener('submit', function (e) {
             e.preventDefault();
             if (!currentEditRow) return;
-            const booking = document.getElementById('edit_booking_input').value || '-';
-            const food = document.getElementById('edit_food_input').value || '-';
-            const quantity = parseInt(document.getElementById('edit_quantity_input').value) || 1;
-            const price = parseFloat(document.getElementById('edit_price_input').value) || 0;
+            const bookingValue = document.getElementById('edit_booking_select').value.split('|');
+            const bookingID = bookingValue[0];
+            const bookingName = bookingValue[1];
+            const food = document.getElementById('edit_food_input').value;
+            const quantity = parseInt(document.getElementById('edit_quantity_input').value);
+            const price = parseFloat(document.getElementById('edit_price_input').value);
             const total = (quantity * price).toFixed(2);
 
-            currentEditRow.children[1].textContent = booking;
-            currentEditRow.children[2].textContent = food;
-            currentEditRow.children[3].textContent = quantity;
-            currentEditRow.children[4].textContent = `$${total}`;
+            currentEditRow.children[1].textContent = bookingID;
+            currentEditRow.children[2].textContent = bookingName;
+            currentEditRow.children[3].textContent = food;
+            currentEditRow.children[4].textContent = quantity;
+            currentEditRow.children[5].textContent = `$${total}`;
 
             bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
         });

@@ -35,7 +35,7 @@
                     <tr>
                         <th>Station ID</th>
                         <th>Name</th>
-                        <th>Code</th>
+                        <!-- <th>Code</th> -->
                         <th>City</th>
                         <th>State</th>
                         <th>Actions</th>
@@ -46,7 +46,7 @@
                     <tr>
                         <td>1</td>
                         <td>Dhaka Central</td>
-                        <td><span class="badge bg-primary">DHK</span></td>
+                        <!-- <td><span class="badge bg-primary">DHK</span></td> -->
                         <td>Dhaka</td>
                         <td>Dhaka</td>
                         <td>
@@ -61,7 +61,7 @@
                     <tr>
                         <td>2</td>
                         <td>Chittagong Junction</td>
-                        <td><span class="badge bg-primary">CTG</span></td>
+                        <!-- <td><span class="badge bg-primary">CTG</span></td> -->
                         <td>Chittagong</td>
                         <td>Chittagong</td>
                         <td>
@@ -76,7 +76,7 @@
                     <tr>
                         <td>3</td>
                         <td>Rajshahi Terminal</td>
-                        <td><span class="badge bg-primary">RJH</span></td>
+                        <!-- <td><span class="badge bg-primary">RJH</span></td> -->
                         <td>Rajshahi</td>
                         <td>Rajshahi</td>
                         <td>

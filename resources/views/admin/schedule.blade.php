@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Trains</title>
+    <title>Admin Panel - Schedule</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/search.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/schedule.css') }}">
@@ -14,7 +14,7 @@
     <x-navbar />
 
     <div class="container">
-        <h1>Train Management</h1>
+        <h1>Schedule Management</h1>
 
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" class="form-control w-25" id="searchInput" placeholder="Search trains...">
@@ -28,8 +28,7 @@
                 <thead class="table-dark">
                     <tr>
                         <th>Train ID</th>
-                        <th>Train Number</th>
-                        <th>Route</th>
+                        <th>Train</th>
                         <th>Departure</th>
                         <th>Arrival</th>
                         <th>Departure Time</th>
@@ -41,11 +40,9 @@
                     </tr>
                 </thead>
                 <tbody id="trainTableBody">
-                    <!-- Hardcoded sample train -->
                     <tr data-id="1">
                         <td>1</td>
-                        <td><strong>TR123</strong></td>
-                        <td>Dhaka - Chittagong</td>
+                        <td><strong>Subarna Express</strong></td>
                         <td>Dhaka</td>
                         <td>Chittagong</td>
                         <td>2025-09-05 08:00</td>
@@ -64,7 +61,6 @@
                             </div>
                         </td>
                     </tr>
-                    <!-- Add more hardcoded trains if needed -->
                 </tbody>
             </table>
         </div>
@@ -82,22 +78,34 @@
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-md-6">
+                                <!-- Train Dropdown -->
                                 <div class="mb-3">
-                                    <label class="form-label">Train Number</label>
-                                    <input type="text" class="form-control" id="train_number" required maxlength="20">
+                                    <label class="form-label">Train</label>
+                                    <select class="form-select" id="train_name" required>
+                                        <option value="Subarna Express">Subarna Express</option>
+                                        <option value="Mohanganj Express">Mohanganj Express</option>
+                                        <option value="Ekota Express">Ekota Express</option>
+                                    </select>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Route</label>
-                                    <input type="text" class="form-control" id="route"
-                                        placeholder="Origin - Destination" required>
-                                </div>
+                                <!-- Departure Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Departure Station</label>
-                                    <input type="text" class="form-control" id="departure" required>
+                                    <select class="form-select" id="departure" required>
+                                        <option value="Dhaka">Dhaka</option>
+                                        <option value="Chittagong">Chittagong</option>
+                                        <option value="Sylhet">Sylhet</option>
+                                        <option value="Rajshahi">Rajshahi</option>
+                                    </select>
                                 </div>
+                                <!-- Arrival Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Arrival Station</label>
-                                    <input type="text" class="form-control" id="arrival" required>
+                                    <select class="form-select" id="arrival" required>
+                                        <option value="Dhaka">Dhaka</option>
+                                        <option value="Chittagong">Chittagong</option>
+                                        <option value="Sylhet">Sylhet</option>
+                                        <option value="Rajshahi">Rajshahi</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -163,22 +171,34 @@
                         <input type="hidden" id="edit_train_id">
                         <div class="row">
                             <div class="col-md-6">
+                                <!-- Train Dropdown -->
                                 <div class="mb-3">
-                                    <label class="form-label">Train Number</label>
-                                    <input type="text" class="form-control" id="edit_train_number" maxlength="20"
-                                        required>
+                                    <label class="form-label">Train</label>
+                                    <select class="form-select" id="edit_train_name" required>
+                                        <option value="Subarna Express">Subarna Express</option>
+                                        <option value="Mohanganj Express">Mohanganj Express</option>
+                                        <option value="Ekota Express">Ekota Express</option>
+                                    </select>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Route</label>
-                                    <input type="text" class="form-control" id="edit_route" required>
-                                </div>
+                                <!-- Departure Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Departure Station</label>
-                                    <input type="text" class="form-control" id="edit_departure" required>
+                                    <select class="form-select" id="edit_departure" required>
+                                        <option value="Dhaka">Dhaka</option>
+                                        <option value="Chittagong">Chittagong</option>
+                                        <option value="Sylhet">Sylhet</option>
+                                        <option value="Rajshahi">Rajshahi</option>
+                                    </select>
                                 </div>
+                                <!-- Arrival Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Arrival Station</label>
-                                    <input type="text" class="form-control" id="edit_arrival" required>
+                                    <select class="form-select" id="edit_arrival" required>
+                                        <option value="Dhaka">Dhaka</option>
+                                        <option value="Chittagong">Chittagong</option>
+                                        <option value="Sylhet">Sylhet</option>
+                                        <option value="Rajshahi">Rajshahi</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -208,7 +228,7 @@
 
                         <div class="row mt-3">
                             <div class="col-md-4">
-                                <label class="form-label">Shovan Price</label>
+                                <label class="form-label">Snigdha Price</label>
                                 <input type="number" class="form-control" id="edit_economy_price" min="0" required>
                             </div>
                             <div class="col-md-4">
@@ -216,7 +236,7 @@
                                 <input type="number" class="form-control" id="edit_ac_price" min="0" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Snigdha Class Price</label>
+                                <label class="form-label">Shovan Class Price</label>
                                 <input type="number" class="form-control" id="edit_first_price" min="0" required>
                             </div>
                         </div>
@@ -252,8 +272,7 @@
             const id = Date.now();
             const train = {
                 id,
-                number: document.getElementById('train_number').value.toUpperCase(),
-                route: document.getElementById('route').value,
+                name: document.getElementById('train_name').value,
                 departure: document.getElementById('departure').value,
                 arrival: document.getElementById('arrival').value,
                 departure_time: document.getElementById('departure_time').value.replace('T', ' '),
@@ -269,8 +288,7 @@
             tr.setAttribute('data-id', id);
             tr.innerHTML = `
                 <td>${id}</td>
-                <td><strong>${train.number}</strong></td>
-                <td>${train.route}</td>
+                <td><strong>${train.name}</strong></td>
                 <td>${train.departure}</td>
                 <td>${train.arrival}</td>
                 <td>${train.departure_time}</td>
@@ -300,17 +318,16 @@
                 const id = e.target.dataset.id;
                 const tr = document.querySelector(`tr[data-id="${id}"]`);
                 document.getElementById('edit_train_id').value = id;
-                document.getElementById('edit_train_number').value = tr.children[1].textContent;
-                document.getElementById('edit_route').value = tr.children[2].textContent;
-                document.getElementById('edit_departure').value = tr.children[3].textContent;
-                document.getElementById('edit_arrival').value = tr.children[4].textContent;
-                document.getElementById('edit_departure_time').value = tr.children[5].textContent.replace(' ', 'T');
-                document.getElementById('edit_arrival_time').value = tr.children[6].textContent.replace(' ', 'T');
-                document.getElementById('edit_duration').value = tr.children[7].textContent;
-                document.getElementById('edit_status').value = tr.children[8].textContent.toLowerCase();
-                document.getElementById('edit_economy_price').value = tr.children[9].children[0].textContent.split(' ')[1];
-                document.getElementById('edit_ac_price').value = tr.children[9].children[1].textContent.split(' ')[1];
-                document.getElementById('edit_first_price').value = tr.children[9].children[2].textContent.split(' ')[1];
+                document.getElementById('edit_train_name').value = tr.children[1].textContent.trim();
+                document.getElementById('edit_departure').value = tr.children[2].textContent.trim();
+                document.getElementById('edit_arrival').value = tr.children[3].textContent.trim();
+                document.getElementById('edit_departure_time').value = tr.children[4].textContent.replace(' ', 'T');
+                document.getElementById('edit_arrival_time').value = tr.children[5].textContent.replace(' ', 'T');
+                document.getElementById('edit_duration').value = tr.children[6].textContent;
+                document.getElementById('edit_status').value = tr.children[7].textContent.toLowerCase();
+                document.getElementById('edit_economy_price').value = tr.children[8].children[0].textContent.split(' ')[1];
+                document.getElementById('edit_ac_price').value = tr.children[8].children[1].textContent.split(' ')[1];
+                document.getElementById('edit_first_price').value = tr.children[8].children[2].textContent.split(' ')[1];
                 new bootstrap.Modal(document.getElementById('editTrainModal')).show();
             }
             if (e.target.classList.contains('delete-train-btn')) {
@@ -325,19 +342,18 @@
             e.preventDefault();
             const id = document.getElementById('edit_train_id').value;
             const tr = document.querySelector(`tr[data-id="${id}"]`);
-            tr.children[1].textContent = document.getElementById('edit_train_number').value.toUpperCase();
-            tr.children[2].textContent = document.getElementById('edit_route').value;
-            tr.children[3].textContent = document.getElementById('edit_departure').value;
-            tr.children[4].textContent = document.getElementById('edit_arrival').value;
-            tr.children[5].textContent = document.getElementById('edit_departure_time').value.replace('T', ' ');
-            tr.children[6].textContent = document.getElementById('edit_arrival_time').value.replace('T', ' ');
-            tr.children[7].textContent = document.getElementById('edit_duration').value;
+            tr.children[1].textContent = document.getElementById('edit_train_name').value;
+            tr.children[2].textContent = document.getElementById('edit_departure').value;
+            tr.children[3].textContent = document.getElementById('edit_arrival').value;
+            tr.children[4].textContent = document.getElementById('edit_departure_time').value.replace('T', ' ');
+            tr.children[5].textContent = document.getElementById('edit_arrival_time').value.replace('T', ' ');
+            tr.children[6].textContent = document.getElementById('edit_duration').value;
             const status = document.getElementById('edit_status').value;
-            tr.children[8].innerHTML = `<span class="badge bg-${status === 'scheduled' ? 'success' : status === 'delayed' ? 'warning' : status === 'cancelled' ? 'danger' : 'info'}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
-            tr.children[9].innerHTML = `
-                <div><strong>Economy:</strong> ${document.getElementById('edit_economy_price').value} BDT</div>
+            tr.children[7].innerHTML = `<span class="badge bg-${status === 'scheduled' ? 'success' : status === 'delayed' ? 'warning' : status === 'cancelled' ? 'danger' : 'info'}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+            tr.children[8].innerHTML = `
+                <div><strong>Snigdha:</strong> ${document.getElementById('edit_economy_price').value} BDT</div>
                 <div><strong>AC:</strong> ${document.getElementById('edit_ac_price').value} BDT</div>
-                <div><strong>First:</strong> ${document.getElementById('edit_first_price').value} BDT</div>
+                <div><strong>Shovan:</strong> ${document.getElementById('edit_first_price').value} BDT</div>
             `;
             bootstrap.Modal.getInstance(document.getElementById('editTrainModal')).hide();
         });

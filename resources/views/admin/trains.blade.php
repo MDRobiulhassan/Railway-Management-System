@@ -30,7 +30,7 @@
                         <th>Train ID</th>
                         <th>Name</th>
                         <th>Total Seats</th>
-                        <th>Status</th>
+                        <th>Type</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -39,7 +39,7 @@
                         <td>1</td>
                         <td>Express 101</td>
                         <td>300</td>
-                        <td><span class="badge bg-success">Active</span></td>
+                        <td><span class="badge bg-success">Express</span></td>
                         <td>
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
@@ -53,7 +53,7 @@
                         <td>2</td>
                         <td>InterCity 202</td>
                         <td>250</td>
-                        <td><span class="badge bg-warning">Maintenance</span></td>
+                        <td><span class="badge bg-warning">Intercity</span></td>
                         <td>
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
@@ -67,7 +67,7 @@
                         <td>3</td>
                         <td>Local 303</td>
                         <td>150</td>
-                        <td><span class="badge bg-danger">Retired</span></td>
+                        <td><span class="badge bg-danger">Local</span></td>
                         <td>
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
@@ -101,11 +101,11 @@
                             <input type="number" class="form-control" id="train_total_seats" required min="1">
                         </div>
                         <div class="mb-3">
-                            <label for="train_status" class="form-label">Status</label>
+                            <label for="train_status" class="form-label">Type</label>
                             <select class="form-select" id="train_status" required>
-                                <option value="active" selected>Active</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="retired">Retired</option>
+                                <option value="active" selected>Intercity</option>
+                                <option value="maintenance">Express</option>
+                                <option value="retired">Local</option>
                             </select>
                         </div>
                     </div>
@@ -137,11 +137,11 @@
                             <input type="number" class="form-control" id="edit_train_total_seats" required min="1">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_train_status" class="form-label">Status</label>
+                            <label for="edit_train_status" class="form-label">Type</label>
                             <select class="form-select" id="edit_train_status" required>
-                                <option value="active">Active</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="retired">Retired</option>
+                                <option value="active">Intercity</option>
+                                <option value="maintenance">Express</option>
+                                <option value="retired">Local</option>
                             </select>
                         </div>
                     </div>
@@ -169,9 +169,9 @@
 
         // Edit train functionality (simulated fetch)
         const trainData = {
-            1: { name: 'Express 101', total_seats: 300, status: 'active' },
-            2: { name: 'InterCity 202', total_seats: 250, status: 'maintenance' },
-            3: { name: 'Local 303', total_seats: 150, status: 'retired' }
+            1: { name: 'Express 101', total_seats: 300, status: 'Express' },
+            2: { name: 'InterCity 202', total_seats: 250, status: 'Intercity' },
+            3: { name: 'Local 303', total_seats: 150, status: 'Local' }
         };
 
         document.querySelectorAll('.edit-train-btn').forEach(button => {

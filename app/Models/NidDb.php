@@ -21,4 +21,12 @@ class NidDb extends Model
     protected $casts = [
         'dob' => 'date',
     ];
+
+    /**
+     * Get the user that owns this NID record
+     */
+    public function user()
+    {
+        return $this->hasOne(User::class, 'user_id', 'user_id');
+    }
 }
