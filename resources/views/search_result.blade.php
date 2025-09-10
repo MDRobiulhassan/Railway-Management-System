@@ -64,13 +64,20 @@
                                 $twoHoursFromNow = now()->addHours(2);
                                 $isWithinTwoHours = $schedule->departure_time <= $twoHoursFromNow;
                                 $hasAvailableSeats = $schedule->available_seats > 0;
+                                $isPastDeparture = $schedule->departure_time <= now();
                             @endphp
-                            @if($isWithinTwoHours)
+                            @if($isPastDeparture)
+                                <span class="badge bg-secondary">Departed</span>
+                            @elseif($isWithinTwoHours)
                                 <span class="badge bg-warning text-dark">Booking Closed</span>
                             @elseif(!$hasAvailableSeats)
                                 <span class="badge bg-danger">Fully Booked</span>
                             @else
-                                <a href="{{ route('booking.step1') }}?schedule_id={{ $schedule->schedule_id }}" class="btn book-btn">Book Now</a>
+                                <form action="{{ route('booking.start') }}" method="POST" style="display: inline;">
+                                    @csrf
+                                    <input type="hidden" name="schedule_id" value="{{ $schedule->schedule_id }}">
+                                    <button type="submit" class="btn book-btn">Book Now</button>
+                                </form>
                             @endif
                         </td>
                     </tr>

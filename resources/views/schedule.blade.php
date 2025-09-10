@@ -30,34 +30,41 @@
                 </thead>
                 <tbody>
                     @forelse($schedules as $schedule)
-                    <tr>
-                        <td>{{ $schedule->train->train_name ?? 'N/A' }}</td>
-                        <td>{{ $schedule->sourceStation->name ?? 'N/A' }}</td>
-                        <td>{{ $schedule->destinationStation->name ?? 'N/A' }}</td>
-                        <td>{{ $schedule->departure_time->format('Y-m-d H:i A') }}</td>
-                        <td>{{ $schedule->arrival_time->format('Y-m-d H:i A') }}</td>
-                        <td>{{ $schedule->formatted_duration }}</td>
-                        <td>{{ $schedule->available_seats }}</td>
-                        <td>
-                            @php
-                                $twoHoursFromNow = now()->addHours(2);
-                                $isWithinTwoHours = $schedule->departure_time <= $twoHoursFromNow;
-                                $hasAvailableSeats = $schedule->available_seats > 0;
-                            @endphp
-                            @if($isWithinTwoHours)
-                                <span class="badge bg-warning text-dark">Booking Closed</span>
-                                <small class="d-block text-muted">Train departs in less than 2 hours</small>
-                            @elseif(!$hasAvailableSeats)
-                                <span class="badge bg-danger">Fully Booked</span>
-                            @else
-                                <button class="btn book-btn">Book Now</button>
-                            @endif
-                        </td>
-                    </tr>
+                        <tr>
+                            <td>{{ $schedule->train->train_name ?? 'N/A' }}</td>
+                            <td>{{ $schedule->sourceStation->name ?? 'N/A' }}</td>
+                            <td>{{ $schedule->destinationStation->name ?? 'N/A' }}</td>
+                            <td>{{ $schedule->departure_time->format('Y-m-d H:i A') }}</td>
+                            <td>{{ $schedule->arrival_time->format('Y-m-d H:i A') }}</td>
+                            <td>{{ $schedule->formatted_duration }}</td>
+                            <td>{{ $schedule->available_seats }}</td>
+                            <td>
+                                @php
+                                    $twoHoursFromNow = now()->addHours(2);
+                                    $isWithinTwoHours = $schedule->departure_time <= $twoHoursFromNow;
+                                    $hasAvailableSeats = $schedule->available_seats > 0;
+                                    $isPastDeparture = $schedule->departure_time <= now();
+                                @endphp
+                                @if($isPastDeparture)
+                                    <span class="badge bg-secondary">Departed</span>
+                                @elseif($isWithinTwoHours)
+                                    <span class="badge bg-warning text-dark">Booking Closed</span>
+                                    <small class="d-block text-muted">Train departs in less than 2 hours</small>
+                                @elseif(!$hasAvailableSeats)
+                                    <span class="badge bg-danger">Fully Booked</span>
+                                @else
+                                    <form action="{{ route('booking.start') }}" method="POST" style="display: inline;">
+                                        @csrf
+                                        <input type="hidden" name="schedule_id" value="{{ $schedule->schedule_id }}">
+                                        <button type="submit" class="btn book-btn">Book Now</button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
                     @empty
-                    <tr>
-                        <td colspan="8" class="text-center">No upcoming trains available.</td>
-                    </tr>
+                        <tr>
+                            <td colspan="8" class="text-center">No upcoming trains available.</td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
@@ -65,9 +72,9 @@
 
         <!-- Pagination -->
         @if($schedules->hasPages())
-        <div class="d-flex justify-content-center mt-4">
-            {{ $schedules->appends(request()->query())->links() }}
-        </div>
+            <div class="d-flex justify-content-center mt-4">
+                {{ $schedules->appends(request()->query())->links() }}
+            </div>
         @endif
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

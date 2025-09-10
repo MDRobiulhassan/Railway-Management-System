@@ -11,65 +11,59 @@
 <body>
 
     <div class="container py-5">
+        <form method="POST" action="{{ route('booking.step3') }}">
+            @csrf
 
-        <h2 class="text-center fw-bold mb-3">Step 2: Food Order (Optional)</h2>
+            <h2 class="text-center fw-bold mb-3">Step 2: Food Order (Optional)</h2>
 
-        <div class="progress mb-4" style="height: 20px;">
-            <div class="progress-bar bg-success" role="progressbar" style="width: 33%">Step 1</div>
-        </div>
+            <div class="progress mb-4" style="height: 20px;">
+                <div class="progress-bar bg-success" role="progressbar" style="width: 66%">Step 2</div>
+            </div>
 
-        <!-- Food categories -->
-        @php
-            $categories = [
-                'Heavy Meals' => [
-                    ['name' => 'Chicken Biriyani', 'desc' => 'Delicious chicken biriyani with salad.', 'price' => 150, 'img' => 'birani.webp'],
-                    ['name' => 'Beef Burger', 'desc' => 'Juicy beef burger with fries.', 'price' => 120, 'img' => 'beefburger.jpg']
-                ],
-                'Snacks' => [
-                    ['name' => 'Chicken Noodles', 'desc' => 'Spicy noodles with chicken and veggies.', 'price' => 100, 'img' => 'chickennoodles.jpg'],
-                    ['name' => 'French Fries', 'desc' => 'Crispy fries with ketchup.', 'price' => 70, 'img' => 'frenchfries.jpg']
-                ],
-                'Drinks' => [
-                    ['name' => 'Coca-Cola', 'desc' => 'Chilled soft drink bottle.', 'price' => 40, 'img' => 'cocacola.jpg'],
-                    ['name' => 'Orange Juice', 'desc' => 'Freshly squeezed orange juice.', 'price' => 60, 'img' => 'orangejuice.jpg']
-                ]
-            ];
-        @endphp
-
-        @foreach($categories as $catName => $foods)
-            <h4 class="text-primary category-heading">🍴 {{ $catName }}</h4>
-            <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
-                @foreach($foods as $index => $food)
-                    <div class="col">
-                        <div class="card h-100 text-center shadow">
-                            <img src="{{ asset('images/' . $food['img']) }}" class="card-img-top" alt="{{ $food['name'] }}">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ $food['name'] }}</h5>
-                                <p class="card-text">{{ $food['desc'] }}</p>
-                                <strong class="text-success">৳{{ $food['price'] }}</strong>
-                                <div class="mt-2 d-flex justify-content-center align-items-center gap-2">
-                                    <button class="btn btn-sm btn-outline-danger btn-decrease"
-                                        data-price="{{ $food['price'] }}">-</button>
-                                    <input type="number" min="0" value="0" class="quantity-input"
-                                        data-price="{{ $food['price'] }}">
-                                    <button class="btn btn-sm btn-outline-success btn-increase"
-                                        data-price="{{ $food['price'] }}">+</button>
+            @if($foodItems && $foodItems->count() > 0)
+                @foreach($foodItems as $category => $foods)
+                    <h4 class="text-primary category-heading">🍴 {{ $category }}</h4>
+                    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+                        @foreach($foods as $food)
+                            <div class="col">
+                                <div class="card h-100 text-center shadow">
+                                    @if($food->image)
+                                        <img src="{{ asset('images/' . $food->image) }}" class="card-img-top" alt="{{ $food->name }}">
+                                    @endif
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ $food->name }}</h5>
+                                        <p class="card-text">{{ $food->description }}</p>
+                                        <strong class="text-success">৳{{ $food->price }}</strong>
+                                        <div class="mt-2 d-flex justify-content-center align-items-center gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-danger btn-decrease"
+                                                data-price="{{ $food->price }}">-</button>
+                                            <input type="number" min="0" value="0" class="quantity-input"
+                                                name="food_items[{{ $food->food_id }}]" data-price="{{ $food->price }}">
+                                            <button type="button" class="btn btn-sm btn-outline-success btn-increase"
+                                                data-price="{{ $food->price }}">+</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @endforeach
                     </div>
                 @endforeach
-            </div>
-        @endforeach
+            @else
+                <div class="alert alert-info text-center">
+                    <h5>No food items available at the moment</h5>
+                    <p>You can skip this step and proceed to payment.</p>
+                </div>
+            @endif
 
-        <!-- Total & Navigation -->
-        <div class="mt-5 text-center">
-            <h4>Total: <span id="totalPrice">৳0</span></h4>
-            <div class="mt-4">
-                <a href="{{ route('booking.step3') }}" class="btn btn-primary me-3 px-4 py-2 fw-bold">Next</a>
-                <a href="{{ route('booking.step3') }}" class="btn btn-outline-secondary px-4 py-2 fw-bold">Skip</a>
+            <!-- Total & Navigation -->
+            <div class="mt-5 text-center">
+                <h4>Total: <span id="totalPrice">৳0</span></h4>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary me-3 px-4 py-2 fw-bold">Next</button>
+                    <button type="submit" class="btn btn-outline-secondary px-4 py-2 fw-bold">Skip</button>
+                </div>
             </div>
-        </div>
+        </form>
 
     </div>
 

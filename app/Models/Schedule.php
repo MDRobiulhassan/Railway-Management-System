@@ -54,13 +54,19 @@ class Schedule extends Model
 
     public function getAvailableSeatsAttribute()
     {
-        $totalSeats = $this->train->total_seats ?? 0;
+        $totalSeats = $this->train->total_seats ?? 100; // Default 100 seats as mentioned
         
-        // Count booked seats for this specific train (since bookings table doesn't have schedule_id)
-        $bookedSeats = \App\Models\Booking::where('train_id', $this->train_id)
-            ->whereIn('status', ['confirmed', 'pending'])
-            ->count();
+        // Count booked seats for this specific schedule date by counting tickets
+        $bookedSeats = \App\Models\Ticket::where('train_id', $this->train_id)
+            ->where('travel_date', $this->departure_time->format('Y-m-d'))
+            ->whereIn('ticket_status', ['active'])
+            ->count(); // Each ticket represents one booked seat
         
         return max(0, $totalSeats - $bookedSeats);
+    }
+
+    public function availableSeats()
+    {
+        return $this->getAvailableSeatsAttribute();
     }
 }

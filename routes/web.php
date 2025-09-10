@@ -30,22 +30,14 @@ Route::get('/search-result', [App\Http\Controllers\SearchController::class, 'sea
 Route::get('/schedule', [App\Http\Controllers\ScheduleController::class, 'index'])->name('schedule');
 Route::get('/api/schedule/search', [App\Http\Controllers\ScheduleController::class, 'search'])->name('api.schedule.search');
 
-Route::get('/booking-step1', function () {
-    return view('booking_step1');
-})->name('booking.step1');
-
-Route::get('/booking-step2', function () {
-    return view('booking_step2');
-})->name('booking.step2');
-
-Route::get('/booking-step3', function () {
-    return view('booking_step3');
-})->name('booking.step3');
-
-
-Route::get('/booking-confirm', function () {
-    return view('booking_confirm');
-})->name('booking.confirm');
+// Booking routes
+Route::post('/booking-start', [App\Http\Controllers\BookingController::class, 'start'])->name('booking.start');
+Route::get('/booking-step1', [App\Http\Controllers\BookingController::class, 'step1'])->name('booking.step1');
+Route::post('/booking-step2', [App\Http\Controllers\BookingController::class, 'step2'])->name('booking.step2');
+Route::post('/booking-step3', [App\Http\Controllers\BookingController::class, 'step3'])->name('booking.step3');
+Route::post('/booking-confirm', [App\Http\Controllers\BookingController::class, 'confirm'])->name('booking.confirm');
+Route::get('/booking-confirm', [App\Http\Controllers\BookingController::class, 'confirmGet'])->name('booking.confirm.get');
+Route::post('/booking-finalize', [App\Http\Controllers\BookingController::class, 'finalize'])->name('booking.finalize');
 
 // Protected user routes
 Route::middleware(['auth'])->group(function () {

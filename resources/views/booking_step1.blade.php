@@ -12,60 +12,80 @@
     <div class="container mt-5 text-center">
         <h2 class="fw-bold mb-4">Step 1: Choose Your Seat</h2>
 
+        <!-- Train Info -->
+        <div class="alert alert-info mb-4">
+            <strong>{{ $schedule->train->train_name }}</strong> - 
+            {{ $schedule->sourceStation->name }} to {{ $schedule->destinationStation->name }} - 
+            {{ $schedule->departure_time->format('M d, Y H:i') }}
+        </div>
+
         <!-- Progress bar -->
         <div class="progress mb-4" style="height: 20px;">
             <div class="progress-bar bg-success" role="progressbar" style="width: 33%">Step 1</div>
         </div>
 
-        <!-- Class selection -->
-        <div class="mb-3">
-            <label for="class" class="form-label fw-bold">Select Class:</label>
-            <select id="class" class="form-select w-50 mx-auto fw-bold">
-                <option selected disabled>Choose class</option>
-                <option value="ac">AC</option>
-                <option value="shovan">Shovan</option>
-                <option value="snigdha">Snigdha</option>
-            </select>
-        </div>
+        <form id="seatForm" method="POST" action="{{ route('booking.step2') }}">
+            @csrf
+            <!-- Class selection -->
+            <div class="mb-3">
+                <label for="class" class="form-label fw-bold">Select Class:</label>
+                <select id="class" name="class" class="form-select w-50 mx-auto fw-bold" required>
+                    <option selected disabled>Choose class</option>
+                    @foreach($compartments as $class => $comps)
+                        <option value="{{ $class }}">{{ ucfirst($class) }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-        <!-- Compartment selection -->
-        <div class="mb-4" id="compartment-section" style="display: none;">
-            <label for="compartment" class="form-label fw-bold">Select Compartment:</label>
-            <select id="compartment" class="form-select w-50 mx-auto fw-bold">
-                <option selected disabled>Choose compartment</option>
-            </select>
-        </div>
+            <!-- Compartment selection -->
+            <div class="mb-4" id="compartment-section" style="display: none;">
+                <label for="compartment" class="form-label fw-bold">Select Compartment:</label>
+                <select id="compartment" name="compartment_id" class="form-select w-50 mx-auto fw-bold" required>
+                    <option selected disabled>Choose compartment</option>
+                </select>
+            </div>
 
-        <!-- Seat layout & legend -->
-        <div id="seat-section" style="display: none;">
-            <div class="row justify-content-center align-items-start">
-                <div class="col-md-7">
-                    <div class="card p-4 mb-4">
-                        <div id="seat-layout" class="seat-layout"></div>
+            <!-- Hidden inputs for selected seats -->
+            <div id="selected-seats-inputs"></div>
+
+            <!-- Seat layout & legend -->
+            <div id="seat-section" style="display: none;">
+                <div class="row justify-content-center align-items-start">
+                    <div class="col-md-7">
+                        <div class="card p-4 mb-4">
+                            <div id="seat-layout" class="seat-layout"></div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="col-md-3 text-start">
+                        <h5 class="fw-bold">Legend:</h5>
+                        <p><span class="legend-box available"></span> Available</p>
+                        <p><span class="legend-box taken"></span> Taken</p>
                     </div>
                 </div>
 
-                <!-- Legend -->
-                <div class="col-md-3 text-start">
-                    <h5 class="fw-bold">Legend:</h5>
-                    <p><span class="legend-box available"></span> Available</p>
-                    <p><span class="legend-box taken"></span> Taken</p>
-                </div>
+                <!-- Selected seats & price -->
+                <h4 class="mt-4">Selected Seat(s): <span id="selected-seats">None</span></h4>
+                <h4>Total Price: <span id="total-price">৳ 0</span></h4>
+
+                <button type="submit" class="btn btn-primary btn-sm mt-4 px-4 py-2 fw-bold mb-2"
+                    id="next-btn" style="min-width: 50px;" disabled>Next</button>
             </div>
-
-            <!-- Selected seats & price -->
-            <h4 class="mt-4">Selected Seat(s): <span id="selected-seats">None</span></h4>
-            <h4>Total Price: <span id="total-price">৳ 0</span></h4>
-
-            <a href="{{ route('booking.step2') }}" class="btn btn-primary btn-sm mt-4 px-4 py-2 fw-bold mb-2"
-                id="next-btn" style="min-width: 50px;">Next</a>
-        </div>
+        </form>
     </div>
 
     <script>
         const seatPrice = 350;
         const selectedSeats = new Set();
-        const takenSeats = [3, 5, 9, 16, 22];
+        const takenSeats = @json($bookedSeats);
+        const compartments = @json($compartments);
+        const seats = @json($seats);
+        const ticketPrices = @json($ticketPrices);
+
+        console.log('Compartments:', compartments);
+        console.log('Seats:', seats);
+        console.log('Taken seats:', takenSeats);
 
         const classDropdown = document.getElementById('class');
         const compartmentDropdown = document.getElementById('compartment');
@@ -73,28 +93,26 @@
         const compartmentSection = document.getElementById('compartment-section');
         const seatLayout = document.getElementById('seat-layout');
 
-        const compartmentOptions = {
-            ac: ['Ka', 'Kha'],
-            shovan: ['Ga', 'Gha'],
-            snigdha: ['Uma', 'Cha']
-        };
-
         classDropdown.addEventListener('change', () => {
             const selectedClass = classDropdown.value;
             compartmentDropdown.innerHTML = '<option selected disabled>Choose compartment</option>';
-            compartmentOptions[selectedClass].forEach(opt => {
-                const option = document.createElement('option');
-                option.value = opt.toLowerCase();
-                option.textContent = opt;
-                compartmentDropdown.appendChild(option);
-            });
+            
+            if (compartments[selectedClass]) {
+                compartments[selectedClass].forEach(comp => {
+                    const option = document.createElement('option');
+                    option.value = comp.compartment_id;
+                    option.textContent = comp.compartment_name;
+                    compartmentDropdown.appendChild(option);
+                });
+            }
+            
             compartmentSection.style.display = 'block';
             seatSection.style.display = 'none';
         });
 
         compartmentDropdown.addEventListener('change', () => {
             seatSection.style.display = 'block';
-            renderSeats(classDropdown.value);
+            renderSeats(classDropdown.value, compartmentDropdown.value);
         });
 
         function renderSeats(trainClass, compartment) {
@@ -102,48 +120,49 @@
             selectedSeats.clear();
             updateSeatSummary();
 
-            let seatNumberStart = 1;
-            let seatNumberEnd = 0;
+            const selectedCompartmentId = parseInt(compartmentDropdown.value);
+            const compartmentSeats = seats.filter(seat => seat.compartment_id === selectedCompartmentId);
+            
+            console.log('Selected compartment ID:', selectedCompartmentId);
+            console.log('Filtered compartment seats:', compartmentSeats);
+            
+            // Use original layout logic but with database seats
             let rows = 0;
+            let seatsPerRow = [];
 
-            if (trainClass === 'ac') {
+            if (trainClass.toLowerCase() === 'ac') {
                 rows = 4; // 4 rows per compartment
-                seatNumberStart = compartment === 'ka' ? 1 : 9;
-                seatNumberEnd = compartment === 'ka' ? 8 : 16;
-            } else if (trainClass === 'shovan') {
+                seatsPerRow = [1, 1]; // 1-1 layout
+            } else if (trainClass.toLowerCase() === 'shovan') {
+                rows = 6; // 6 rows per compartment  
+                seatsPerRow = [1, 2]; // 1-2 layout
+            } else if (trainClass.toLowerCase() === 'snigdha') {
                 rows = 6; // 6 rows per compartment
-                seatNumberStart = compartment === 'ga' ? 1 : 19;
-                seatNumberEnd = compartment === 'ga' ? 18 : 36;
-            } else if (trainClass === 'snigdha') {
-                rows = 6; // 6 rows per compartment
-                seatNumberStart = compartment === 'uma' ? 1 : 25;
-                seatNumberEnd = compartment === 'uma' ? 24 : 48;
+                seatsPerRow = [2, 2]; // 2-2 layout
             }
 
-            let seatNumber = seatNumberStart;
-
+            let seatIndex = 0;
             for (let row = 0; row < rows; row++) {
                 const rowDiv = document.createElement('div');
                 rowDiv.classList.add('d-flex', 'justify-content-center', 'mb-2', 'w-100');
 
-                if (trainClass === 'ac') {
-                    // 1-1 layout
-                    rowDiv.appendChild(createSeat(seatNumber++));
-                    rowDiv.appendChild(createSpacer());
-                    rowDiv.appendChild(createSeat(seatNumber++));
-                } else if (trainClass === 'shovan') {
-                    // 1-2 layout
-                    rowDiv.appendChild(createSeat(seatNumber++));
-                    rowDiv.appendChild(createSeat(seatNumber++));
-                    rowDiv.appendChild(createSpacer());
-                    rowDiv.appendChild(createSeat(seatNumber++));
-                } else if (trainClass === 'snigdha') {
-                    // 2-2 layout
-                    rowDiv.appendChild(createSeat(seatNumber++));
-                    rowDiv.appendChild(createSeat(seatNumber++));
-                    rowDiv.appendChild(createSpacer());
-                    rowDiv.appendChild(createSeat(seatNumber++));
-                    rowDiv.appendChild(createSeat(seatNumber++));
+                // Left side seats
+                for (let i = 0; i < seatsPerRow[0]; i++) {
+                    if (seatIndex < compartmentSeats.length) {
+                        rowDiv.appendChild(createSeat(compartmentSeats[seatIndex]));
+                        seatIndex++;
+                    }
+                }
+
+                // Aisle spacer
+                rowDiv.appendChild(createSpacer());
+
+                // Right side seats
+                for (let i = 0; i < seatsPerRow[1]; i++) {
+                    if (seatIndex < compartmentSeats.length) {
+                        rowDiv.appendChild(createSeat(compartmentSeats[seatIndex]));
+                        seatIndex++;
+                    }
                 }
 
                 seatLayout.appendChild(rowDiv);
@@ -152,20 +171,17 @@
             attachSeatClickListeners();
         }
 
-        // Compartment change listener
-        compartmentDropdown.addEventListener('change', () => {
-            seatSection.style.display = 'block';
-            renderSeats(classDropdown.value, compartmentDropdown.value);
-        });
-
-
-
-        function createSeat(num) {
+        function createSeat(seatData) {
             const seat = document.createElement('div');
             seat.classList.add('seat');
-            seat.dataset.seat = num;
-            seat.textContent = num;
-            if (takenSeats.includes(num)) seat.classList.add('taken');
+            seat.dataset.seatId = seatData.seat_id;
+            seat.dataset.seatNumber = seatData.seat_number;
+            seat.textContent = seatData.seat_number;
+            
+            if (!seatData.is_available || takenSeats.includes(seatData.seat_id)) {
+                seat.classList.add('taken');
+            }
+            
             return seat;
         }
 
@@ -180,14 +196,14 @@
                 seat.addEventListener('click', function () {
                     if (this.classList.contains('taken')) return;
 
-                    const seatNum = this.dataset.seat;
+                    const seatId = this.dataset.seatId;
 
                     if (this.classList.contains('selected')) {
                         this.classList.remove('selected');
-                        selectedSeats.delete(seatNum);
+                        selectedSeats.delete(seatId);
                     } else {
                         this.classList.add('selected');
-                        selectedSeats.add(seatNum);
+                        selectedSeats.add(seatId);
                     }
 
                     updateSeatSummary();
@@ -196,11 +212,33 @@
         }
 
         function updateSeatSummary() {
+            const seatNumbers = [...selectedSeats].map(seatId => {
+                const seat = document.querySelector(`[data-seat-id="${seatId}"]`);
+                return seat ? seat.dataset.seatNumber : '';
+            }).filter(num => num);
+            
             document.getElementById('selected-seats').textContent =
-                selectedSeats.size ? [...selectedSeats].join(', ') : 'None';
+                seatNumbers.length ? seatNumbers.join(', ') : 'None';
 
+            const selectedClass = classDropdown.value;
+            const currentPrice = ticketPrices && ticketPrices[selectedClass] ? ticketPrices[selectedClass].base_price : seatPrice;
+            
             document.getElementById('total-price').textContent =
-                '৳ ' + (selectedSeats.size * seatPrice);
+                '৳ ' + (selectedSeats.size * currentPrice);
+
+            // Update hidden inputs for form submission
+            const inputsContainer = document.getElementById('selected-seats-inputs');
+            inputsContainer.innerHTML = '';
+            selectedSeats.forEach(seatId => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selected_seats[]';
+                input.value = seatId;
+                inputsContainer.appendChild(input);
+            });
+
+            // Enable/disable next button
+            document.getElementById('next-btn').disabled = selectedSeats.size === 0;
         }
     </script>
 </body>
