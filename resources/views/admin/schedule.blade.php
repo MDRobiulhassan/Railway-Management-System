@@ -16,6 +16,13 @@
     <div class="container">
         <h1>Schedule Management</h1>
 
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" class="form-control w-25" id="searchInput" placeholder="Search trains...">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTrainModal">
@@ -27,40 +34,40 @@
             <table class="table table-striped" id="trainTable">
                 <thead class="table-dark">
                     <tr>
-                        <th>Train ID</th>
+                        <th>Schedule ID</th>
                         <th>Train</th>
+                        <th>Source</th>
+                        <th>Destination</th>
                         <th>Departure</th>
                         <th>Arrival</th>
-                        <th>Departure Time</th>
-                        <th>Arrival Time</th>
-                        <th>Duration (min)</th>
-                        <th>Status</th>
-                        <th>Ticket Prices</th>
+                        <th>Duration</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="trainTableBody">
-                    <tr data-id="1">
-                        <td>1</td>
-                        <td><strong>Subarna Express</strong></td>
-                        <td>Dhaka</td>
-                        <td>Chittagong</td>
-                        <td>2025-09-05 08:00</td>
-                        <td>2025-09-05 14:00</td>
-                        <td>360</td>
-                        <td><span class="badge bg-success">Scheduled</span></td>
-                        <td>
-                            <div><strong>Snigdha:</strong> 500 BDT</div>
-                            <div><strong>Shovan:</strong> 1000 BDT</div>
-                            <div><strong>AC:</strong> 1500 BDT</div>
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-train-btn" data-id="1">Edit</button>
-                                <button class="btn btn-sm btn-danger delete-train-btn" data-id="1">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
+                    @forelse($schedules as $s)
+                        <tr data-id="{{ $s->schedule_id }}">
+                            <td>{{ $s->schedule_id }}</td>
+                            <td><strong>{{ $s->train->train_name ?? 'N/A' }}</strong></td>
+                            <td>{{ $s->sourceStation->name ?? 'N/A' }}</td>
+                            <td>{{ $s->destinationStation->name ?? 'N/A' }}</td>
+                            <td>{{ $s->departure_time ? $s->departure_time->format('Y-m-d H:i') : '-' }}</td>
+                            <td>{{ $s->arrival_time ? $s->arrival_time->format('Y-m-d H:i') : '-' }}</td>
+                            <td>{{ $s->formatted_duration ?? '' }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-warning edit-train-btn" data-id="{{ $s->schedule_id }}">Edit</button>
+                                    <form action="{{ route('admin.schedule.destroy', $s->schedule_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this schedule?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="8" class="text-center">No schedules found</td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -70,7 +77,8 @@
     <div class="modal fade" id="addTrainModal" tabindex="-1" aria-labelledby="addTrainModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form id="addTrainForm">
+                <form id="addTrainForm" method="POST" action="{{ route('admin.schedule.store') }}">
+                    @csrf
                     <div class="modal-header">
                         <h5 class="modal-title" id="addTrainModalLabel">Add New Train</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -81,71 +89,43 @@
                                 <!-- Train Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Train</label>
-                                    <select class="form-select" id="train_name" required>
-                                        <option value="Subarna Express">Subarna Express</option>
-                                        <option value="Mohanganj Express">Mohanganj Express</option>
-                                        <option value="Ekota Express">Ekota Express</option>
+                                    <select class="form-select" id="train_id" name="train_id" required>
+                                        <option value="">Select Train...</option>
+                                        @foreach($trains as $t)
+                                            <option value="{{ $t->train_id }}">{{ $t->train_name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <!-- Departure Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Departure Station</label>
-                                    <select class="form-select" id="departure" required>
-                                        <option value="Dhaka">Dhaka</option>
-                                        <option value="Chittagong">Chittagong</option>
-                                        <option value="Sylhet">Sylhet</option>
-                                        <option value="Rajshahi">Rajshahi</option>
+                                    <select class="form-select" id="source_id" name="source_id" required>
+                                        <option value="">Select Station...</option>
+                                        @foreach($stations as $st)
+                                            <option value="{{ $st->station_id }}">{{ $st->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <!-- Arrival Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Arrival Station</label>
-                                    <select class="form-select" id="arrival" required>
-                                        <option value="Dhaka">Dhaka</option>
-                                        <option value="Chittagong">Chittagong</option>
-                                        <option value="Sylhet">Sylhet</option>
-                                        <option value="Rajshahi">Rajshahi</option>
+                                    <select class="form-select" id="destination_id" name="destination_id" required>
+                                        <option value="">Select Station...</option>
+                                        @foreach($stations as $st)
+                                            <option value="{{ $st->station_id }}">{{ $st->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Departure Time</label>
-                                    <input type="datetime-local" class="form-control" id="departure_time" required>
+                                    <input type="datetime-local" class="form-control" id="departure_time" name="departure_time" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Arrival Time</label>
-                                    <input type="datetime-local" class="form-control" id="arrival_time" required>
+                                    <input type="datetime-local" class="form-control" id="arrival_time" name="arrival_time" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Duration (minutes)</label>
-                                    <input type="number" class="form-control" id="duration" required min="1">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Status</label>
-                                    <select class="form-select" id="status" required>
-                                        <option value="scheduled">Scheduled</option>
-                                        <option value="delayed">Delayed</option>
-                                        <option value="cancelled">Cancelled</option>
-                                        <option value="arrived">Arrived</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Ticket Pricing -->
-                        <div class="row mt-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Snigdha Price</label>
-                                <input type="number" class="form-control" id="economy_price" min="0" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">AC Price</label>
-                                <input type="number" class="form-control" id="ac_price" min="0" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Shovan Class Price</label>
-                                <input type="number" class="form-control" id="first_price" min="0" required>
                             </div>
                         </div>
                     </div>
@@ -162,7 +142,9 @@
     <div class="modal fade" id="editTrainModal" tabindex="-1" aria-labelledby="editTrainModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <form id="editTrainForm">
+                <form id="editTrainForm" method="POST">
+                    @csrf
+                    @method('PUT')
                     <div class="modal-header">
                         <h5 class="modal-title" id="editTrainModalLabel">Edit Train</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -174,72 +156,44 @@
                                 <!-- Train Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Train</label>
-                                    <select class="form-select" id="edit_train_name" required>
-                                        <option value="Subarna Express">Subarna Express</option>
-                                        <option value="Mohanganj Express">Mohanganj Express</option>
-                                        <option value="Ekota Express">Ekota Express</option>
+                                    <select class="form-select" id="edit_train_id" name="train_id" required>
+                                        @foreach($trains as $t)
+                                            <option value="{{ $t->train_id }}">{{ $t->train_name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <!-- Departure Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Departure Station</label>
-                                    <select class="form-select" id="edit_departure" required>
-                                        <option value="Dhaka">Dhaka</option>
-                                        <option value="Chittagong">Chittagong</option>
-                                        <option value="Sylhet">Sylhet</option>
-                                        <option value="Rajshahi">Rajshahi</option>
+                                    <select class="form-select" id="edit_source_id" name="source_id" required>
+                                        @foreach($stations as $st)
+                                            <option value="{{ $st->station_id }}">{{ $st->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <!-- Arrival Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Arrival Station</label>
-                                    <select class="form-select" id="edit_arrival" required>
-                                        <option value="Dhaka">Dhaka</option>
-                                        <option value="Chittagong">Chittagong</option>
-                                        <option value="Sylhet">Sylhet</option>
-                                        <option value="Rajshahi">Rajshahi</option>
+                                    <select class="form-select" id="edit_destination_id" name="destination_id" required>
+                                        @foreach($stations as $st)
+                                            <option value="{{ $st->station_id }}">{{ $st->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Departure Time</label>
-                                    <input type="datetime-local" class="form-control" id="edit_departure_time" required>
+                                    <input type="datetime-local" class="form-control" id="edit_departure_time" name="departure_time" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Arrival Time</label>
-                                    <input type="datetime-local" class="form-control" id="edit_arrival_time" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Duration (minutes)</label>
-                                    <input type="number" class="form-control" id="edit_duration" min="1" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Status</label>
-                                    <select class="form-select" id="edit_status" required>
-                                        <option value="scheduled">Scheduled</option>
-                                        <option value="delayed">Delayed</option>
-                                        <option value="cancelled">Cancelled</option>
-                                        <option value="arrived">Arrived</option>
-                                    </select>
+                                    <input type="datetime-local" class="form-control" id="edit_arrival_time" name="arrival_time" required>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mt-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Snigdha Price</label>
-                                <input type="number" class="form-control" id="edit_economy_price" min="0" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">AC Price</label>
-                                <input type="number" class="form-control" id="edit_ac_price" min="0" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Shovan Class Price</label>
-                                <input type="number" class="form-control" id="edit_first_price" min="0" required>
-                            </div>
-                        </div>
+                        <!-- No pricing here; pricing managed in Ticket Prices page -->
                     </div>
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-warning">Update Train</button>
@@ -266,97 +220,29 @@
             });
         });
 
-        // Add Train
-        addForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const id = Date.now();
-            const train = {
-                id,
-                name: document.getElementById('train_name').value,
-                departure: document.getElementById('departure').value,
-                arrival: document.getElementById('arrival').value,
-                departure_time: document.getElementById('departure_time').value.replace('T', ' '),
-                arrival_time: document.getElementById('arrival_time').value.replace('T', ' '),
-                duration: document.getElementById('duration').value,
-                status: document.getElementById('status').value,
-                economy: document.getElementById('economy_price').value,
-                ac: document.getElementById('ac_price').value,
-                first: document.getElementById('first_price').value
-            };
+        // Add posts to server directly
 
-            const tr = document.createElement('tr');
-            tr.setAttribute('data-id', id);
-            tr.innerHTML = `
-                <td>${id}</td>
-                <td><strong>${train.name}</strong></td>
-                <td>${train.departure}</td>
-                <td>${train.arrival}</td>
-                <td>${train.departure_time}</td>
-                <td>${train.arrival_time}</td>
-                <td>${train.duration}</td>
-                <td><span class="badge bg-${train.status === 'scheduled' ? 'success' : train.status === 'delayed' ? 'warning' : train.status === 'cancelled' ? 'danger' : 'info'}">${train.status.charAt(0).toUpperCase() + train.status.slice(1)}</span></td>
-                <td>
-                    <div><strong>Snigdha:</strong> ${train.economy} BDT</div>
-                    <div><strong>AC:</strong> ${train.ac} BDT</div>
-                    <div><strong>Shovan:</strong> ${train.first} BDT</div>
-                </td>
-                <td>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-warning edit-train-btn" data-id="${id}">Edit</button>
-                        <button class="btn btn-sm btn-danger delete-train-btn" data-id="${id}">Delete</button>
-                    </div>
-                </td>
-            `;
-            tableBody.appendChild(tr);
-            bootstrap.Modal.getInstance(document.getElementById('addTrainModal')).hide();
-            addForm.reset();
-        });
-
-        // Edit Train
+        // Edit Train - load JSON and set form action
         document.addEventListener('click', function (e) {
             if (e.target.classList.contains('edit-train-btn')) {
                 const id = e.target.dataset.id;
-                const tr = document.querySelector(`tr[data-id="${id}"]`);
-                document.getElementById('edit_train_id').value = id;
-                document.getElementById('edit_train_name').value = tr.children[1].textContent.trim();
-                document.getElementById('edit_departure').value = tr.children[2].textContent.trim();
-                document.getElementById('edit_arrival').value = tr.children[3].textContent.trim();
-                document.getElementById('edit_departure_time').value = tr.children[4].textContent.replace(' ', 'T');
-                document.getElementById('edit_arrival_time').value = tr.children[5].textContent.replace(' ', 'T');
-                document.getElementById('edit_duration').value = tr.children[6].textContent;
-                document.getElementById('edit_status').value = tr.children[7].textContent.toLowerCase();
-                document.getElementById('edit_economy_price').value = tr.children[8].children[0].textContent.split(' ')[1];
-                document.getElementById('edit_ac_price').value = tr.children[8].children[1].textContent.split(' ')[1];
-                document.getElementById('edit_first_price').value = tr.children[8].children[2].textContent.split(' ')[1];
-                new bootstrap.Modal(document.getElementById('editTrainModal')).show();
-            }
-            if (e.target.classList.contains('delete-train-btn')) {
-                if (confirm('Are you sure you want to delete this train?')) {
-                    const id = e.target.dataset.id;
-                    document.querySelector(`tr[data-id="${id}"]`).remove();
-                }
+                fetch(`/adminpanel/schedule/${id}/edit`)
+                    .then(r => r.json())
+                    .then(s => {
+                        document.getElementById('edit_train_id').value = id;
+                        document.getElementById('edit_train_id').value = s.train_id;
+                        document.getElementById('edit_source_id').value = s.source_id;
+                        document.getElementById('edit_destination_id').value = s.destination_id;
+                        document.getElementById('edit_departure_time').value = s.departure_time;
+                        document.getElementById('edit_arrival_time').value = s.arrival_time;
+                        editForm.action = `/adminpanel/schedule/${id}`;
+                        new bootstrap.Modal(document.getElementById('editTrainModal')).show();
+                    })
+                    .catch(() => alert('Failed to load schedule'));
             }
         });
 
-        editForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const id = document.getElementById('edit_train_id').value;
-            const tr = document.querySelector(`tr[data-id="${id}"]`);
-            tr.children[1].textContent = document.getElementById('edit_train_name').value;
-            tr.children[2].textContent = document.getElementById('edit_departure').value;
-            tr.children[3].textContent = document.getElementById('edit_arrival').value;
-            tr.children[4].textContent = document.getElementById('edit_departure_time').value.replace('T', ' ');
-            tr.children[5].textContent = document.getElementById('edit_arrival_time').value.replace('T', ' ');
-            tr.children[6].textContent = document.getElementById('edit_duration').value;
-            const status = document.getElementById('edit_status').value;
-            tr.children[7].innerHTML = `<span class="badge bg-${status === 'scheduled' ? 'success' : status === 'delayed' ? 'warning' : status === 'cancelled' ? 'danger' : 'info'}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
-            tr.children[8].innerHTML = `
-                <div><strong>Snigdha:</strong> ${document.getElementById('edit_economy_price').value} BDT</div>
-                <div><strong>AC:</strong> ${document.getElementById('edit_ac_price').value} BDT</div>
-                <div><strong>Shovan:</strong> ${document.getElementById('edit_first_price').value} BDT</div>
-            `;
-            bootstrap.Modal.getInstance(document.getElementById('editTrainModal')).hide();
-        });
+        // Edit form posts to server
     </script>
 </body>
 

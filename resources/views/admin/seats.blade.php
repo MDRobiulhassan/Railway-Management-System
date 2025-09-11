@@ -16,6 +16,13 @@
     <div class="container mt-4">
         <h1>Train Seat Management</h1>
 
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" id="searchInput" class="form-control w-25" placeholder="Search seats...">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#seatModal">
@@ -37,20 +44,28 @@
                     </tr>
                 </thead>
                 <tbody id="seatTableBody">
-                    <tr>
-                        <td>1</td>
-                        <td>Subarna Express</td>
-                        <td>Ka</td>
-                        <td>AC</td>
-                        <td>1</td>
-                        <td><span class="badge bg-success">Available</span></td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-seat-btn">Edit</button>
-                                <button class="btn btn-sm btn-danger delete-seat-btn">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
+                    @forelse($seats as $s)
+                        <tr>
+                            <td>{{ $s->seat_id }}</td>
+                            <td>{{ $s->train->train_name ?? 'N/A' }}</td>
+                            <td>{{ $s->compartment->compartment_name ?? 'N/A' }}</td>
+                            <td>{{ $s->compartment->class_name ?? 'N/A' }}</td>
+                            <td>{{ $s->seat_number }}</td>
+                            <td><span class="badge {{ $s->is_available ? 'bg-success' : 'bg-danger' }}">{{ $s->is_available ? 'Available' : 'Unavailable' }}</span></td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-warning edit-seat-btn" data-bs-toggle="modal" data-bs-target="#seatModal" data-id="{{ $s->seat_id }}">Edit</button>
+                                    <form action="{{ route('admin.seats.destroy', $s->seat_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this seat?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7" class="text-center">No seats found</td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -65,24 +80,25 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="seatForm">
+                    <form id="seatForm" method="POST">
+                        @csrf
+                        <div id="method-field"></div>
                         <div class="mb-3">
-                            <label>Train Name</label>
-                            <select class="form-select" id="train_name" required>
-                                <option value="Subarna Express">Subarna Express</option>
-                                <option value="Mohanganj Express">Mohanganj Express</option>
-                                <option value="Ekota Express">Ekota Express</option>
+                            <label>Train</label>
+                            <select class="form-select" id="train_id" name="train_id" required>
+                                <option value="">Select Train...</option>
+                                @foreach($trains as $t)
+                                    <option value="{{ $t->train_id }}">{{ $t->train_name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="mb-3">
                             <label>Compartment</label>
-                            <select class="form-select" id="compartment_name" required>
-                                <option value="Ka">Ka</option>
-                                <option value="Kha">Kha</option>
-                                <option value="Ga">Ga</option>
-                                <option value="Gha">Gha</option>
-                                <option value="Uma">Uma</option>
-                                <option value="Cha">Cha</option>
+                            <select class="form-select" id="compartment_id" name="compartment_id" required>
+                                <option value="">Select Compartment...</option>
+                                @foreach($compartments as $c)
+                                    <option value="{{ $c->compartment_id }}" data-class="{{ $c->class_name }}" data-train="{{ $c->train_id }}">{{ $c->compartment_name }} ({{ $c->class_name }})</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="mb-3">
@@ -91,11 +107,11 @@
                         </div>
                         <div class="mb-3">
                             <label>Seat Number</label>
-                            <input type="text" class="form-control" id="seat_number" required>
+                            <input type="text" class="form-control" id="seat_number" name="seat_number" required>
                         </div>
                         <div class="mb-3">
                             <label>Availability</label>
-                            <select class="form-select" id="is_available" required>
+                            <select class="form-select" id="is_available" name="is_available" required>
                                 <option value="1">Available</option>
                                 <option value="0">Unavailable</option>
                             </select>
@@ -112,23 +128,33 @@
     <script>
         const seatTableBody = document.getElementById('seatTableBody');
         const seatForm = document.getElementById('seatForm');
+        const methodField = document.getElementById('method-field');
         const modalTitle = document.getElementById('modalTitle');
-        const compartmentMap = { 'Ka': 'AC', 'Kha': 'AC', 'Ga': 'Snigdha', 'Gha': 'Snigdha', 'Uma': 'Shovan', 'Cha': 'Shovan' };
-
-        const compartmentSelect = document.getElementById('compartment_name');
         const classInput = document.getElementById('class_name');
+        const compartmentSelect = document.getElementById('compartment_id');
+        const trainSelect = document.getElementById('train_id');
 
-        let currentEditRow = null;
-
-        // Auto-set class based on compartment
-        compartmentSelect.addEventListener('change', () => {
-            classInput.value = compartmentMap[compartmentSelect.value];
+        // Default add action
+        document.addEventListener('DOMContentLoaded', function () {
+            seatForm.action = '/adminpanel/seats';
         });
 
-        // Initialize
-        classInput.value = compartmentMap[compartmentSelect.value];
+        // Filter compartments by train and set class
+        trainSelect.addEventListener('change', () => {
+            const trainId = trainSelect.value;
+            Array.from(compartmentSelect.options).forEach(opt => {
+                if (!opt.value) return;
+                opt.hidden = opt.getAttribute('data-train') !== trainId;
+            });
+            compartmentSelect.value = '';
+            classInput.value = '';
+        });
+        compartmentSelect.addEventListener('change', () => {
+            const cls = compartmentSelect.selectedOptions[0]?.getAttribute('data-class') || '';
+            classInput.value = cls;
+        });
 
-        // Search seats
+        // Search
         document.getElementById('searchInput').addEventListener('keyup', () => {
             const term = document.getElementById('searchInput').value.toLowerCase();
             seatTableBody.querySelectorAll('tr').forEach(row => {
@@ -136,69 +162,35 @@
             });
         });
 
-        // Delete seat
-        seatTableBody.addEventListener('click', e => {
-            if (e.target.classList.contains('delete-seat-btn')) {
-                if (confirm('Are you sure you want to delete this seat?')) {
-                    e.target.closest('tr').remove();
-                }
-            }
-        });
-
-        // Edit seat
-        seatTableBody.addEventListener('click', e => {
-            if (e.target.classList.contains('edit-seat-btn')) {
-                currentEditRow = e.target.closest('tr');
+        // Edit seat load
+        document.querySelectorAll('.edit-seat-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
                 modalTitle.textContent = 'Edit Seat';
-                document.getElementById('train_name').value = currentEditRow.cells[1].textContent;
-                compartmentSelect.value = currentEditRow.cells[2].textContent;
-                classInput.value = currentEditRow.cells[3].textContent;
-                document.getElementById('seat_number').value = currentEditRow.cells[4].textContent;
-                document.getElementById('is_available').value = currentEditRow.cells[5].textContent.includes('Available') ? '1' : '0';
-                new bootstrap.Modal(document.getElementById('seatModal')).show();
-            }
+                methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+                fetch(`/adminpanel/seats/${id}/edit`)
+                    .then(r => r.json())
+                    .then(s => {
+                        trainSelect.value = s.train_id;
+                        // trigger filter
+                        const event = new Event('change');
+                        trainSelect.dispatchEvent(event);
+                        compartmentSelect.value = s.compartment_id;
+                        classInput.value = compartmentSelect.selectedOptions[0]?.getAttribute('data-class') || '';
+                        document.getElementById('seat_number').value = s.seat_number;
+                        document.getElementById('is_available').value = s.is_available ? '1' : '0';
+                        seatForm.action = `/adminpanel/seats/${id}`;
+                    })
+                    .catch(() => alert('Failed to load seat'));
+            });
         });
 
-        // Save changes or add new seat
-        seatForm.addEventListener('submit', e => {
-            e.preventDefault();
-            const train_name = document.getElementById('train_name').value;
-            const compartment_name = compartmentSelect.value;
-            const class_name = classInput.value;
-            const seat_number = document.getElementById('seat_number').value;
-            const is_available = document.getElementById('is_available').value === '1';
-            const badgeClass = is_available ? 'bg-success' : 'bg-danger';
-            const badgeText = is_available ? 'Available' : 'Unavailable';
-
-            if (currentEditRow) {
-                currentEditRow.cells[1].textContent = train_name;
-                currentEditRow.cells[2].textContent = compartment_name;
-                currentEditRow.cells[3].textContent = class_name;
-                currentEditRow.cells[4].textContent = seat_number;
-                currentEditRow.cells[5].innerHTML = `<span class="badge ${badgeClass}">${badgeText}</span>`;
-            } else {
-                const newRow = seatTableBody.insertRow();
-                const id = seatTableBody.rows.length + 1;
-                newRow.innerHTML = `
-            <td>${id}</td>
-            <td>${train_name}</td>
-            <td>${compartment_name}</td>
-            <td>${class_name}</td>
-            <td>${seat_number}</td>
-            <td><span class="badge ${badgeClass}">${badgeText}</span></td>
-            <td>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-warning edit-seat-btn">Edit</button>
-                    <button class="btn btn-sm btn-danger delete-seat-btn">Delete</button>
-                </div>
-            </td>`;
-            }
-
-            currentEditRow = null;
+        document.getElementById('seatModal').addEventListener('hidden.bs.modal', function () {
             modalTitle.textContent = 'Add Seat';
+            methodField.innerHTML = '';
+            seatForm.action = '/adminpanel/seats';
             seatForm.reset();
-            classInput.value = compartmentMap[compartmentSelect.value];
-            bootstrap.Modal.getInstance(document.getElementById('seatModal')).hide();
+            classInput.value = '';
         });
     </script>
 </body>
