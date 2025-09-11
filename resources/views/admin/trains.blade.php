@@ -16,6 +16,21 @@
     <div class="container">
         <h1>Train Management</h1>
 
+        <!-- Success & error messages -->
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" class="form-control w-25" id="searchInput" placeholder="Search trains...">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTrainModal">
@@ -35,48 +50,40 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Express 101</td>
-                        <td>300</td>
-                        <td><span class="badge bg-success">Express</span></td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
-                                    data-bs-target="#editTrainModal" data-train="1">Edit</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this train?')">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>InterCity 202</td>
-                        <td>250</td>
-                        <td><span class="badge bg-warning">Intercity</span></td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
-                                    data-bs-target="#editTrainModal" data-train="2">Edit</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this train?')">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>Local 303</td>
-                        <td>150</td>
-                        <td><span class="badge bg-danger">Local</span></td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
-                                    data-bs-target="#editTrainModal" data-train="3">Edit</button>
-                                <button class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete this train?')">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
+                    @forelse($trains as $train)
+                        <tr>
+                            <td>{{ $train->train_id }}</td>
+                            <td>{{ $train->train_name }}</td>
+                            <td>{{ $train->total_seats }}</td>
+                            <td>
+                                <span class="badge 
+                                    @if($train->train_type === 'Express') bg-success
+                                    @elseif($train->train_type === 'Intercity') bg-warning
+                                    @elseif($train->train_type === 'Local') bg-danger
+                                    @else bg-secondary
+                                    @endif">
+                                    {{ $train->train_type }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-warning edit-train-btn" data-bs-toggle="modal"
+                                        data-bs-target="#editTrainModal" data-train-id="{{ $train->train_id }}">Edit</button>
+                                    
+                                    <form action="{{ route('admin.trains.destroy', $train->train_id) }}" method="POST" style="display:inline;"
+                                        onsubmit="return confirm('Are you sure you want to delete {{ $train->train_name }}?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center">No trains found</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -86,7 +93,8 @@
     <div class="modal fade" id="addTrainModal" tabindex="-1" aria-labelledby="addTrainModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form>
+                <form action="{{ route('admin.trains.store') }}" method="POST">
+                    @csrf
                     <div class="modal-header">
                         <h5 class="modal-title" id="addTrainModalLabel">Add New Train</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -94,18 +102,18 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="train_name" class="form-label">Train Name</label>
-                            <input type="text" class="form-control" id="train_name" required>
+                            <input type="text" class="form-control" id="train_name" name="train_name" required>
                         </div>
                         <div class="mb-3">
                             <label for="train_total_seats" class="form-label">Total Seats</label>
-                            <input type="number" class="form-control" id="train_total_seats" required min="1">
+                            <input type="number" class="form-control" id="train_total_seats" name="total_seats" required min="1">
                         </div>
                         <div class="mb-3">
-                            <label for="train_status" class="form-label">Type</label>
-                            <select class="form-select" id="train_status" required>
-                                <option value="active" selected>Intercity</option>
-                                <option value="maintenance">Express</option>
-                                <option value="retired">Local</option>
+                            <label for="train_type" class="form-label">Type</label>
+                            <select class="form-select" id="train_type" name="train_type" required>
+                                <option value="Intercity" selected>Intercity</option>
+                                <option value="Express">Express</option>
+                                <option value="Local">Local</option>
                             </select>
                         </div>
                     </div>
@@ -122,7 +130,9 @@
     <div class="modal fade" id="editTrainModal" tabindex="-1" aria-labelledby="editTrainModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="editTrainForm">
+                <form id="editTrainForm" method="POST">
+                    @csrf
+                    @method('PUT')
                     <div class="modal-header">
                         <h5 class="modal-title" id="editTrainModalLabel">Edit Train</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -130,18 +140,18 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="edit_train_name" class="form-label">Train Name</label>
-                            <input type="text" class="form-control" id="edit_train_name" required>
+                            <input type="text" class="form-control" id="edit_train_name" name="train_name" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit_train_total_seats" class="form-label">Total Seats</label>
-                            <input type="number" class="form-control" id="edit_train_total_seats" required min="1">
+                            <input type="number" class="form-control" id="edit_train_total_seats" name="total_seats" required min="1">
                         </div>
                         <div class="mb-3">
-                            <label for="edit_train_status" class="form-label">Type</label>
-                            <select class="form-select" id="edit_train_status" required>
-                                <option value="active">Intercity</option>
-                                <option value="maintenance">Express</option>
-                                <option value="retired">Local</option>
+                            <label for="edit_train_type" class="form-label">Type</label>
+                            <select class="form-select" id="edit_train_type" name="train_type" required>
+                                <option value="Intercity">Intercity</option>
+                                <option value="Express">Express</option>
+                                <option value="Local">Local</option>
                             </select>
                         </div>
                     </div>
@@ -167,22 +177,27 @@
             });
         });
 
-        // Edit train functionality (simulated fetch)
-        const trainData = {
-            1: { name: 'Express 101', total_seats: 300, status: 'Express' },
-            2: { name: 'InterCity 202', total_seats: 250, status: 'Intercity' },
-            3: { name: 'Local 303', total_seats: 150, status: 'Local' }
-        };
-
+        // Edit train functionality
         document.querySelectorAll('.edit-train-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                const trainId = this.getAttribute('data-train');
-                const train = trainData[trainId];
-
-                document.getElementById('editTrainForm').action = `/trains/${trainId}`;
-                document.getElementById('edit_train_name').value = train.name;
-                document.getElementById('edit_train_total_seats').value = train.total_seats;
-                document.getElementById('edit_train_status').value = train.status;
+            button.addEventListener('click', function() {
+                const trainId = this.getAttribute('data-train-id');
+                
+                // Fetch train data
+                fetch(`/adminpanel/trains/${trainId}/edit`)
+                    .then(response => response.json())
+                    .then(train => {
+                        // Populate form fields
+                        document.getElementById('edit_train_name').value = train.train_name;
+                        document.getElementById('edit_train_total_seats').value = train.total_seats;
+                        document.getElementById('edit_train_type').value = train.train_type;
+                        
+                        // Update form action
+                        document.getElementById('editTrainForm').action = `/adminpanel/trains/${trainId}`;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching train data:', error);
+                        alert('Error loading train data');
+                    });
             });
         });
 
