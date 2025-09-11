@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Booking;
+use App\Models\User;
+use App\Models\Train;
+use App\Models\Station;
+use App\Models\Schedule;
 use App\Models\Compartment;
+use App\Models\Seat;
+use App\Models\Booking;
+use App\Models\Ticket;
+use App\Models\Payment;
 use App\Models\FoodItem;
 use App\Models\FoodOrder;
-use App\Models\Payment;
-use App\Models\Schedule;
-use App\Models\Seat;
-use App\Models\Station;
-use App\Models\Ticket;
 use App\Models\TicketPrice;
-use App\Models\Train;
 use App\Models\NidDb;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -92,6 +92,155 @@ class AdminController extends Controller
             'recentBookings' => $recentBookings,
             'recentPayments' => $recentPayments,
         ]);
+    }
+
+    // Schedules
+    public function schedules()
+    {
+        $schedules = Schedule::with(['train', 'sourceStation', 'destinationStation'])->orderByDesc('created_at')->get();
+        $trains = Train::orderBy('train_name')->get(['train_id', 'train_name']);
+        $stations = Station::orderBy('name')->get(['station_id', 'name']);
+        return view('admin.schedule', compact('schedules', 'trains', 'stations'));
+    }
+
+    public function getSchedule($id)
+    {
+        $schedule = Schedule::with(['train', 'sourceStation', 'destinationStation'])->findOrFail($id);
+        
+        // Get ticket prices for this schedule's train by compartment class
+        $ticketPrices = TicketPrice::whereHas('compartment', function($query) use ($schedule) {
+            $query->where('train_id', $schedule->train_id);
+        })->with('compartment')->get()->groupBy('compartment.class_name');
+        
+        // Extract prices with proper fallback
+        $acPrice = 0;
+        $shovanPrice = 0;
+        $snigdhaPrice = 0;
+        
+        if ($ticketPrices->has('AC')) {
+            $acPrice = $ticketPrices->get('AC')->first()->base_price ?? 0;
+        }
+        if ($ticketPrices->has('Shovan')) {
+            $shovanPrice = $ticketPrices->get('Shovan')->first()->base_price ?? 0;
+        }
+        if ($ticketPrices->has('Snigdha')) {
+            $snigdhaPrice = $ticketPrices->get('Snigdha')->first()->base_price ?? 0;
+        }
+        
+        return response()->json([
+            'schedule_id' => $schedule->schedule_id,
+            'train_id' => $schedule->train_id,
+            'train_name' => $schedule->train->train_name,
+            'source_station_id' => $schedule->source_id,
+            'destination_station_id' => $schedule->destination_id,
+            'departure_time' => $schedule->departure_time->format('Y-m-d\TH:i'),
+            'arrival_time' => $schedule->arrival_time->format('Y-m-d\TH:i'),
+            'duration_minutes' => $schedule->duration,
+            'status' => 'scheduled',
+            'prices' => [
+                'AC' => $acPrice,
+                'Shovan' => $shovanPrice,
+                'Snigdha' => $snigdhaPrice,
+            ]
+        ]);
+    }
+
+    public function storeSchedule(Request $request)
+    {
+        $validated = $request->validate([
+            'train_id' => 'required|exists:trains,train_id',
+            'source_station_id' => 'required|exists:stations,station_id',
+            'destination_station_id' => 'required|exists:stations,station_id|different:source_station_id',
+            'departure_time' => 'required|date',
+            'arrival_time' => 'required|date|after:departure_time',
+            'duration_minutes' => 'required|integer|min:1',
+            'status' => 'required|in:scheduled,delayed,cancelled,arrived',
+            'ac_price' => 'required|numeric|min:0',
+            'shovan_price' => 'required|numeric|min:0',
+            'snigdha_price' => 'required|numeric|min:0',
+        ]);
+
+        // Create schedule (using correct column names from migration)
+        $schedule = Schedule::create([
+            'train_id' => $validated['train_id'],
+            'source_id' => $validated['source_station_id'],
+            'destination_id' => $validated['destination_station_id'],
+            'departure_time' => $validated['departure_time'],
+            'arrival_time' => $validated['arrival_time'],
+        ]);
+
+        // Set ticket prices for each compartment class
+        $this->setTicketPricesForSchedule($validated['train_id'], [
+            'AC' => $validated['ac_price'],
+            'Shovan' => $validated['shovan_price'],
+            'Snigdha' => $validated['snigdha_price'],
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Schedule created successfully']);
+    }
+
+    public function updateSchedule(Request $request, $id)
+    {
+        $schedule = Schedule::findOrFail($id);
+        $validated = $request->validate([
+            'train_id' => 'required|exists:trains,train_id',
+            'source_station_id' => 'required|exists:stations,station_id',
+            'destination_station_id' => 'required|exists:stations,station_id|different:source_station_id',
+            'departure_time' => 'required|date',
+            'arrival_time' => 'required|date|after:departure_time',
+            'duration_minutes' => 'required|integer|min:1',
+            'status' => 'required|in:scheduled,delayed,cancelled,arrived',
+            'ac_price' => 'required|numeric|min:0',
+            'shovan_price' => 'required|numeric|min:0',
+            'snigdha_price' => 'required|numeric|min:0',
+        ]);
+
+        // Update schedule (using correct column names from migration)
+        $schedule->update([
+            'train_id' => $validated['train_id'],
+            'source_id' => $validated['source_station_id'],
+            'destination_id' => $validated['destination_station_id'],
+            'departure_time' => $validated['departure_time'],
+            'arrival_time' => $validated['arrival_time'],
+        ]);
+
+        // Update ticket prices
+        $this->setTicketPricesForSchedule($validated['train_id'], [
+            'AC' => $validated['ac_price'],
+            'Shovan' => $validated['shovan_price'],
+            'Snigdha' => $validated['snigdha_price'],
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Schedule updated successfully']);
+    }
+
+    public function destroySchedule($id)
+    {
+        $schedule = Schedule::findOrFail($id);
+        $schedule->delete();
+        return response()->json(['success' => true, 'message' => 'Schedule deleted successfully']);
+    }
+
+    private function setTicketPricesForSchedule($trainId, $prices)
+    {
+        // Get compartments for this train grouped by class
+        $compartments = Compartment::where('train_id', $trainId)->get()->groupBy('class_name');
+        
+        foreach ($prices as $className => $price) {
+            $classCompartments = $compartments->get($className, collect());
+            
+            foreach ($classCompartments as $compartment) {
+                TicketPrice::updateOrCreate(
+                    [
+                        'train_id' => $trainId,
+                        'compartment_id' => $compartment->compartment_id,
+                    ],
+                    [
+                        'base_price' => $price,
+                    ]
+                );
+            }
+        }
     }
 
     // Payments
@@ -303,61 +452,6 @@ class AdminController extends Controller
         return redirect()->route('admin.seats')->with('success', 'Seat deleted successfully');
     }
 
-    // Schedules
-    public function schedules()
-    {
-        $schedules = Schedule::with(['train', 'sourceStation', 'destinationStation'])->orderByDesc('created_at')->get();
-        $trains = Train::orderBy('train_name')->get(['train_id', 'train_name']);
-        $stations = Station::orderBy('name')->get(['station_id', 'name']);
-        return view('admin.schedule', compact('schedules', 'trains', 'stations'));
-    }
-
-    public function getSchedule($id)
-    {
-        $s = Schedule::findOrFail($id);
-        return response()->json([
-            'schedule_id' => $s->schedule_id,
-            'train_id' => $s->train_id,
-            'source_id' => $s->source_id,
-            'destination_id' => $s->destination_id,
-            'departure_time' => optional($s->departure_time)->format('Y-m-d\TH:i'),
-            'arrival_time' => optional($s->arrival_time)->format('Y-m-d\TH:i'),
-        ]);
-    }
-
-    public function storeSchedule(Request $request)
-    {
-        $validated = $request->validate([
-            'train_id' => 'required|exists:trains,train_id',
-            'source_id' => 'required|exists:stations,station_id',
-            'destination_id' => 'required|exists:stations,station_id|different:source_id',
-            'departure_time' => 'required|date',
-            'arrival_time' => 'required|date|after:departure_time',
-        ]);
-        Schedule::create($validated);
-        return redirect()->route('admin.schedule')->with('success', 'Schedule created successfully');
-    }
-
-    public function updateSchedule(Request $request, $id)
-    {
-        $s = Schedule::findOrFail($id);
-        $validated = $request->validate([
-            'train_id' => 'required|exists:trains,train_id',
-            'source_id' => 'required|exists:stations,station_id',
-            'destination_id' => 'required|exists:stations,station_id|different:source_id',
-            'departure_time' => 'required|date',
-            'arrival_time' => 'required|date|after:departure_time',
-        ]);
-        $s->update($validated);
-        return redirect()->route('admin.schedule')->with('success', 'Schedule updated successfully');
-    }
-
-    public function destroySchedule($id)
-    {
-        $s = Schedule::findOrFail($id);
-        $s->delete();
-        return redirect()->route('admin.schedule')->with('success', 'Schedule deleted successfully');
-    }
     // Bookings
     public function bookings()
     {
@@ -636,8 +730,48 @@ class AdminController extends Controller
             'train_type' => 'required|in:Intercity,Express,Local',
         ]);
 
-        Train::create($validated);
-        return redirect()->route('admin.trains')->with('success', 'Train created successfully');
+        // Create the train
+        $train = Train::create($validated);
+        
+        // Auto-generate compartments and seats
+        $this->generateCompartmentsAndSeats($train->train_id);
+        
+        return redirect()->route('admin.trains')->with('success', 'Train created successfully with compartments and seats');
+    }
+
+    /**
+     * Auto-generate compartments and seats for a new train
+     */
+    private function generateCompartmentsAndSeats($trainId)
+    {
+        // Define compartment structure
+        $compartments = [
+            ['name' => 'Ka', 'class' => 'AC', 'seats' => 8],
+            ['name' => 'Kha', 'class' => 'AC', 'seats' => 8],
+            ['name' => 'Ga', 'class' => 'Shovan', 'seats' => 18],
+            ['name' => 'Gha', 'class' => 'Shovan', 'seats' => 18],
+            ['name' => 'Uma', 'class' => 'Snigdha', 'seats' => 24],
+            ['name' => 'Cha', 'class' => 'Snigdha', 'seats' => 24],
+        ];
+
+        foreach ($compartments as $compData) {
+            // Create compartment
+            $compartment = Compartment::create([
+                'train_id' => $trainId,
+                'compartment_name' => $compData['name'],
+                'class_name' => $compData['class']
+            ]);
+
+            // Generate seats for this compartment
+            for ($i = 1; $i <= $compData['seats']; $i++) {
+                Seat::create([
+                    'train_id' => $trainId,
+                    'compartment_id' => $compartment->compartment_id,
+                    'seat_number' => (string)$i,
+                    'is_available' => true
+                ]);
+            }
+        }
     }
 
     public function updateTrain(Request $request, $id)

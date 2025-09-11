@@ -24,7 +24,7 @@
     <div class="container pb-3">
         <h1>Admin Panel Dashboard</h1>
 
-        @isset($stats)
+        <!-- @isset($stats)
         <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
             <div class="col">
                 <div class="card text-center p-3 shadow-sm border-0 rounded-3">
@@ -108,7 +108,7 @@
                 </div>
             </div>
         </div>
-        @endisset
+        @endisset -->
 
         <div class="row g-4">
 
@@ -257,7 +257,7 @@
 
         </div>
     </div>
-    @isset($recentBookings)
+    <!-- @isset($recentBookings)
     <div class="container pb-4">
         <div class="row g-4">
             <div class="col-md-6">
@@ -300,7 +300,7 @@
             </div>
         </div>
     </div>
-    @endisset
+    @endisset -->
 
     <x-footer />
 

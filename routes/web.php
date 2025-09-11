@@ -50,6 +50,25 @@ Route::middleware(['auth'])->group(function () {
     })->name('user.profile');
 });
 
+// Admin routes (protected by auth middleware)
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+    
+    // Schedules
+    Route::get('/schedules', [App\Http\Controllers\AdminController::class, 'schedules'])->name('schedules');
+    Route::get('/schedules/{id}', [App\Http\Controllers\AdminController::class, 'getSchedule'])->name('schedules.get');
+    Route::post('/schedules', [App\Http\Controllers\AdminController::class, 'storeSchedule'])->name('schedules.store');
+    Route::put('/schedules/{id}', [App\Http\Controllers\AdminController::class, 'updateSchedule'])->name('schedules.update');
+    Route::delete('/schedules/{id}', [App\Http\Controllers\AdminController::class, 'destroySchedule'])->name('schedules.destroy');
+    
+    // Payments
+    Route::get('/payments', [App\Http\Controllers\AdminController::class, 'payments'])->name('payments');
+    Route::get('/payments/{id}', [App\Http\Controllers\AdminController::class, 'getPayment'])->name('payments.get');
+    Route::post('/payments', [App\Http\Controllers\AdminController::class, 'storePayment'])->name('payments.store');
+    Route::put('/payments/{id}', [App\Http\Controllers\AdminController::class, 'updatePayment'])->name('payments.update');
+    Route::delete('/payments/{id}', [App\Http\Controllers\AdminController::class, 'destroyPayment'])->name('payments.destroy');
+});
+
 // Protected admin routes
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/adminpanel', [App\Http\Controllers\AdminController::class, 'index'])->name('adminpanel');

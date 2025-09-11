@@ -15,8 +15,8 @@ class Schedule extends Model
         'train_id',
         'source_id',
         'destination_id',
+        'departure_time',
         'arrival_time',
-        'departure_time'
     ];
 
     protected $casts = [
