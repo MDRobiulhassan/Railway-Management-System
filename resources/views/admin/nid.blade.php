@@ -16,6 +16,19 @@
     <div class="container">
         <h1>NID Database Management</h1>
 
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" id="searchInput" class="form-control w-25" placeholder="Search by NID or name...">
             <button class="btn btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#addNIDModal">
@@ -27,7 +40,7 @@
             <table class="table table-striped">
                 <thead class="table-dark">
                     <tr>
-                        <th>NID ID</th>
+                        <th>User ID</th>
                         <th>NID Number</th>
                         <th>Name</th>
                         <th>Date of Birth</th>
@@ -35,17 +48,26 @@
                     </tr>
                 </thead>
                 <tbody id="nidTableBody">
-                    <tr>
-                        <td>1</td>
-                        <td>1234567890</td>
-                        <td>John Doe</td>
-                        <td>1990-05-01</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning edit-btn" data-bs-toggle="modal"
-                                data-bs-target="#editNIDModal">Edit</button>
-                            <button class="btn btn-sm btn-danger delete-btn">Delete</button>
-                        </td>
-                    </tr>
+                    @forelse($nids as $n)
+                        <tr>
+                            <td>{{ $n->user_id }}</td>
+                            <td>{{ $n->nid_number }}</td>
+                            <td>{{ $n->name }}</td>
+                            <td>{{ $n->dob ? $n->dob->format('Y-m-d') : '-' }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-warning edit-btn" data-bs-toggle="modal" data-bs-target="#editNIDModal" data-id="{{ $n->user_id }}">Edit</button>
+                                    <form action="{{ route('admin.nid.destroy', $n->user_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this NID record?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="text-center">No NID records found</td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -55,23 +77,28 @@
     <div class="modal fade" id="addNIDModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="addNIDForm">
+                <form id="addNIDForm" method="POST" action="{{ route('admin.nid.store') }}">
+                    @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Add New NID</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
+                            <label for="add_user_id" class="form-label">User ID</label>
+                            <input type="number" class="form-control" id="add_user_id" name="user_id" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="add_nid_number" class="form-label">NID Number</label>
-                            <input type="text" class="form-control" id="add_nid_number" required>
+                            <input type="text" class="form-control" id="add_nid_number" name="nid_number" required>
                         </div>
                         <div class="mb-3">
                             <label for="add_name" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="add_name" required>
+                            <input type="text" class="form-control" id="add_name" name="name" required>
                         </div>
                         <div class="mb-3">
                             <label for="add_dob" class="form-label">Date of Birth</label>
-                            <input type="date" class="form-control" id="add_dob" required>
+                            <input type="date" class="form-control" id="add_dob" name="dob" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -87,7 +114,9 @@
     <div class="modal fade" id="editNIDModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="editNIDForm">
+                <form id="editNIDForm" method="POST">
+                    @csrf
+                    @method('PUT')
                     <div class="modal-header">
                         <h5 class="modal-title">Edit NID</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -95,15 +124,15 @@
                     <div class="modal-body">
                         <div class="mb-3">
                             <label for="edit_nid_number" class="form-label">NID Number</label>
-                            <input type="text" class="form-control" id="edit_nid_number">
+                            <input type="text" class="form-control" id="edit_nid_number" name="nid_number" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit_name" class="form-label">Full Name</label>
-                            <input type="text" class="form-control" id="edit_name">
+                            <input type="text" class="form-control" id="edit_name" name="name" required>
                         </div>
                         <div class="mb-3">
                             <label for="edit_dob" class="form-label">Date of Birth</label>
-                            <input type="date" class="form-control" id="edit_dob">
+                            <input type="date" class="form-control" id="edit_dob" name="dob" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -118,59 +147,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const nidTableBody = document.getElementById('nidTableBody');
-        let currentEditRow = null;
-
-        // Add NID
-        document.getElementById('addNIDForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const nidNumber = document.getElementById('add_nid_number').value;
-            const name = document.getElementById('add_name').value;
-            const dob = document.getElementById('add_dob').value;
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${nidTableBody.children.length + 1}</td>
-                <td>${nidNumber}</td>
-                <td>${name}</td>
-                <td>${dob}</td>
-                <td>
-                    <button class="btn btn-sm btn-warning edit-btn" data-bs-toggle="modal" data-bs-target="#editNIDModal">Edit</button>
-                    <button class="btn btn-sm btn-danger delete-btn">Delete</button>
-                </td>
-            `;
-            nidTableBody.appendChild(row);
-            this.reset();
-            bootstrap.Modal.getInstance(document.getElementById('addNIDModal')).hide();
-        });
-
-        // Edit & Delete
-        nidTableBody.addEventListener('click', function (e) {
-            const row = e.target.closest('tr');
-            if (e.target.classList.contains('edit-btn')) {
-                currentEditRow = row;
-                document.getElementById('edit_nid_number').value = row.children[1].textContent;
-                document.getElementById('edit_name').value = row.children[2].textContent;
-                document.getElementById('edit_dob').value = row.children[3].textContent;
-            }
-            if (e.target.classList.contains('delete-btn')) {
-                if (confirm('Delete this NID?')) row.remove();
-            }
-        });
-
-        document.getElementById('editNIDForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            if (!currentEditRow) return;
-            currentEditRow.children[1].textContent = document.getElementById('edit_nid_number').value;
-            currentEditRow.children[2].textContent = document.getElementById('edit_name').value;
-            currentEditRow.children[3].textContent = document.getElementById('edit_dob').value;
-            bootstrap.Modal.getInstance(document.getElementById('editNIDModal')).hide();
-        });
+        const editForm = document.getElementById('editNIDForm');
 
         // Search
         document.getElementById('searchInput').addEventListener('keyup', function () {
             const term = this.value.toLowerCase();
             nidTableBody.querySelectorAll('tr').forEach(row => {
                 row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+            });
+        });
+
+        // Open edit modal
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                fetch(`/adminpanel/nid/${id}/edit`)
+                    .then(r => r.json())
+                    .then(n => {
+                        document.getElementById('edit_nid_number').value = n.nid_number;
+                        document.getElementById('edit_name').value = n.name;
+                        document.getElementById('edit_dob').value = n.dob;
+                        editForm.action = `/adminpanel/nid/${id}`;
+                    })
+                    .catch(() => alert('Failed to load NID record'));
             });
         });
     </script>

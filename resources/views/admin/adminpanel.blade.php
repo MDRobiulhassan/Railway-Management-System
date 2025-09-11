@@ -23,6 +23,93 @@
 
     <div class="container pb-3">
         <h1>Admin Panel Dashboard</h1>
+
+        @isset($stats)
+        <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+            <div class="col">
+                <div class="card text-center p-3 shadow-sm border-0 rounded-3">
+                    <i class="fa-solid fa-users text-primary mb-2" style="font-size: 1.5rem;"></i>
+                    <h6 class="mb-1">Users</h6>
+                    <div class="display-6">{{ number_format($stats['users'] ?? 0) }}</div>
+                    <small class="text-muted">Admins: {{ number_format($stats['admins'] ?? 0) }}</small>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center p-3 shadow-sm border-0 rounded-3">
+                    <i class="fa-solid fa-train text-success mb-2" style="font-size: 1.5rem;"></i>
+                    <h6 class="mb-1">Trains</h6>
+                    <div class="display-6">{{ number_format($stats['trains'] ?? 0) }}</div>
+                    <small class="text-muted">Schedules: {{ number_format($stats['schedules'] ?? 0) }}</small>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-center p-3 shadow-sm border-0 rounded-3">
+                    <i class="fa-solid fa-building text-info mb-2" style="font-size: 1.5rem;"></i>
+                    <h6 class="mb-1">Stations</h6>
+                    <div class="display-6">{{ number_format($stats['stations'] ?? 0) }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Bookings</h6>
+                    <div class="d-flex justify-content-between">
+                        <span>Total</span>
+                        <strong>{{ number_format($stats['bookings'] ?? 0) }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Confirmed</span>
+                        <strong class="text-success">{{ number_format($stats['bookings_confirmed'] ?? 0) }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Pending</span>
+                        <strong class="text-warning">{{ number_format($stats['bookings_pending'] ?? 0) }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Cancelled</span>
+                        <strong class="text-danger">{{ number_format($stats['bookings_cancelled'] ?? 0) }}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Payments</h6>
+                    <div class="d-flex justify-content-between">
+                        <span>Revenue</span>
+                        <strong>৳ {{ number_format($stats['revenue'] ?? 0, 2) }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Completed</span>
+                        <strong class="text-success">{{ number_format($stats['payments_completed'] ?? 0) }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Pending</span>
+                        <strong class="text-warning">{{ number_format($stats['payments_pending'] ?? 0) }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Failed</span>
+                        <strong class="text-danger">{{ number_format($stats['payments_failed'] ?? 0) }}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 h-100">
+                    <h6 class="mb-3">Catering</h6>
+                    <div class="d-flex justify-content-between">
+                        <span>Food Items</span>
+                        <strong>{{ number_format($stats['food_items'] ?? 0) }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Food Orders</span>
+                        <strong>{{ number_format($stats['food_orders'] ?? 0) }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endisset
+
         <div class="row g-4">
 
             <!-- Passengers -->
@@ -170,6 +257,51 @@
 
         </div>
     </div>
+    @isset($recentBookings)
+    <div class="container pb-4">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card p-3 h-100">
+                    <h5 class="mb-3">Recent Bookings</h5>
+                    <ul class="list-group list-group-flush">
+                        @forelse($recentBookings as $booking)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    #{{ $booking->booking_id }} — {{ $booking->user->name ?? 'User' }}
+                                    <small class="text-muted">({{ $booking->train->train_name ?? 'Train' }})</small>
+                                </span>
+                                <span class="badge bg-secondary">{{ ucfirst($booking->status) }}</span>
+                            </li>
+                        @empty
+                            <li class="list-group-item">No recent bookings</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 h-100">
+                    <h5 class="mb-3">Recent Payments</h5>
+                    <ul class="list-group list-group-flush">
+                        @forelse($recentPayments as $payment)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    #{{ $payment->payment_id }} — ৳ {{ number_format($payment->amount, 2) }}
+                                    <small class="text-muted">(Booking #{{ $payment->booking_id }})</small>
+                                </span>
+                                <span class="badge {{ $payment->payment_status === 'completed' ? 'bg-success' : ($payment->payment_status === 'pending' ? 'bg-warning' : 'bg-danger') }}">
+                                    {{ ucfirst($payment->payment_status) }}
+                                </span>
+                            </li>
+                        @empty
+                            <li class="list-group-item">No recent payments</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endisset
+
     <x-footer />
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

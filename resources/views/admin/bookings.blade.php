@@ -17,9 +17,22 @@
     <div class="container mt-4">
         <h1 class="mb-4">Booking Management</h1>
 
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" id="searchInput" class="form-control w-25" placeholder="Search bookings...">
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bookingModal">
                 <i class="fa-solid fa-plus"></i> Add Booking
             </button>
         </div>
@@ -38,84 +51,86 @@
                     </tr>
                 </thead>
                 <tbody id="bookingTableBody">
-                    <!-- Example row -->
-                    <tr>
-                        <td>1</td>
-                        <td>John Doe</td>
-                        <td>Express 101</td>
-                        <td>2025-09-02 10:30</td>
-                        <td><span class="badge bg-success">Confirmed</span></td>
-                        <td>250.00</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning">Edit</button>
-                            <button class="btn btn-sm btn-danger">Delete</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Jane Smith</td>
-                        <td>Local 202</td>
-                        <td>2025-09-03 14:00</td>
-                        <td><span class="badge bg-warning">Pending</span></td>
-                        <td>180.00</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning">Edit</button>
-                            <button class="btn btn-sm btn-danger">Delete</button>
-                        </td>
-                    </tr>
+                    @forelse($bookings as $booking)
+                        <tr>
+                            <td>{{ $booking->booking_id }}</td>
+                            <td>{{ $booking->user->name ?? 'N/A' }}</td>
+                            <td>{{ $booking->train->train_name ?? 'N/A' }}</td>
+                            <td>{{ $booking->booking_date ? $booking->booking_date->format('Y-m-d H:i') : 'N/A' }}</td>
+                            <td>
+                                <span class="badge 
+                                    @if($booking->status === 'confirmed') bg-success
+                                    @elseif($booking->status === 'cancelled') bg-danger
+                                    @else bg-warning
+                                    @endif">
+                                    {{ ucfirst($booking->status) }}
+                                </span>
+                            </td>
+                            <td>{{ number_format($booking->total_amount, 2) }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-warning edit-booking-btn" data-bs-toggle="modal"
+                                        data-bs-target="#bookingModal" data-booking-id="{{ $booking->booking_id }}">Edit</button>
+                                    <form action="{{ route('admin.bookings.destroy', $booking->booking_id) }}" method="POST" style="display:inline;"
+                                        onsubmit="return confirm('Delete this booking?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center">No bookings found</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Add Booking Modal -->
-    <div class="modal fade" id="addBookingModal" tabindex="-1" aria-labelledby="addBookingModalLabel"
-        aria-hidden="true">
+    <!-- Add/Edit Booking Modal -->
+    <div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="addBookingForm">
+                <form id="bookingForm" method="POST">
+                    @csrf
+                    <div id="method-field"></div>
                     <div class="modal-header">
-                        <h5 class="modal-title" id="addBookingModalLabel">Add Booking</h5>
+                        <h5 class="modal-title" id="modalTitle">Add Booking</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="booking_id" class="form-label">Booking ID</label>
-                            <input type="number" class="form-control" id="booking_id" required>
+                            <label class="form-label">User ID</label>
+                            <input type="number" class="form-control" name="user_id" id="user_id" required>
+                            <small class="text-muted">Enter existing User ID</small>
                         </div>
                         <div class="mb-3">
-                            <label for="user_name" class="form-label">User Name</label>
-                            <input type="text" class="form-control" id="user_name" required>
+                            <label class="form-label">Train ID</label>
+                            <input type="number" class="form-control" name="train_id" id="train_id" required>
+                            <small class="text-muted">Enter existing Train ID</small>
                         </div>
                         <div class="mb-3">
-                            <label for="train_name" class="form-label">Train Name</label>
-                            <select class="form-select" id="train_name" required>
-                                <option value="" disabled selected>Select Train</option>
-                                <option value="Express 101">Express 101</option>
-                                <option value="Local 202">Local 202</option>
-                                <option value="Fast Track 303">Fast Track 303</option>
-                                <!-- Add more trains as needed -->
-                            </select>
+                            <label class="form-label">Booking Date</label>
+                            <input type="datetime-local" class="form-control" name="booking_date" id="booking_date" required>
                         </div>
                         <div class="mb-3">
-                            <label for="booking_date" class="form-label">Booking Date</label>
-                            <input type="datetime-local" class="form-control" id="booking_date" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="status" class="form-label">Payment Status</label>
-                            <select class="form-select" id="status" required>
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status" id="status" required>
                                 <option value="pending">Pending</option>
                                 <option value="confirmed">Confirmed</option>
                                 <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label for="total_amount" class="form-label">Total Amount</label>
-                            <input type="number" class="form-control" id="total_amount" step="0.01" min="0" required>
+                            <label class="form-label">Total Amount</label>
+                            <input type="number" step="0.01" min="0" class="form-control" name="total_amount" id="total_amount" required>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">Add Booking</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     </div>
                 </form>
@@ -125,49 +140,49 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const bookingTableBody = document.getElementById('bookingTableBody');
-        const addBookingForm = document.getElementById('addBookingForm');
+        const bookingForm = document.getElementById('bookingForm');
+        const methodField = document.getElementById('method-field');
+        const modalTitle = document.getElementById('modalTitle');
 
-        addBookingForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const bookingId = document.getElementById('booking_id').value;
-            const userName = document.getElementById('user_name').value;
-            const trainName = document.getElementById('train_name').value;
-            const bookingDate = document.getElementById('booking_date').value;
-            const status = document.getElementById('status').value;
-            const totalAmount = document.getElementById('total_amount').value;
-
-            const statusBadge = status === 'confirmed' ? 'success' :
-                status === 'cancelled' ? 'danger' : 'warning';
-
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${bookingId}</td>
-                <td>${userName}</td>
-                <td>${trainName}</td>
-                <td>${bookingDate}</td>
-                <td><span class="badge bg-${statusBadge}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
-                <td>${parseFloat(totalAmount).toFixed(2)}</td>
-                <td>
-                    <button class="btn btn-sm btn-warning">Edit</button>
-                    <button class="btn btn-sm btn-danger">Delete</button>
-                </td>
-            `;
-            bookingTableBody.appendChild(newRow);
-
-            addBookingForm.reset();
-            const addModal = bootstrap.Modal.getInstance(document.getElementById('addBookingModal'));
-            addModal.hide();
+        // Default to create
+        document.addEventListener('DOMContentLoaded', function () {
+            bookingForm.action = '/adminpanel/bookings';
         });
 
         // Search functionality
         document.getElementById('searchInput').addEventListener('keyup', function () {
             const term = this.value.toLowerCase();
-            bookingTableBody.querySelectorAll('tr').forEach(row => {
-                const rowText = row.textContent.toLowerCase();
-                row.style.display = rowText.includes(term) ? '' : 'none';
+            document.querySelectorAll('#bookingTableBody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
             });
+        });
+
+        // Edit booking
+        document.querySelectorAll('.edit-booking-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-booking-id');
+                modalTitle.textContent = 'Edit Booking';
+                methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+
+                fetch(`/adminpanel/bookings/${id}/edit`)
+                    .then(r => r.json())
+                    .then(b => {
+                        document.getElementById('user_id').value = b.user_id;
+                        document.getElementById('train_id').value = b.train_id;
+                        document.getElementById('booking_date').value = b.booking_date;
+                        document.getElementById('status').value = b.status;
+                        document.getElementById('total_amount').value = b.total_amount;
+                        bookingForm.action = `/adminpanel/bookings/${id}`;
+                    })
+                    .catch(() => alert('Failed to load booking'));
+            });
+        });
+
+        document.getElementById('bookingModal').addEventListener('hidden.bs.modal', function () {
+            modalTitle.textContent = 'Add Booking';
+            methodField.innerHTML = '';
+            bookingForm.action = '/adminpanel/bookings';
+            bookingForm.reset();
         });
     </script>
 </body>

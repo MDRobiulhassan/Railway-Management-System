@@ -16,7 +16,14 @@
     <div class="container mt-4">
         <h1>Food Order Management</h1>
 
-        <form id="addOrderFormUI" class="mb-3 d-flex justify-content-between align-items-center">
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <form class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" id="searchInput" class="form-control w-25"
                 placeholder="Search by user, food, or order id...">
             <button type="button" class="btn btn-primary ms-auto" data-bs-toggle="modal"
@@ -39,20 +46,28 @@
                     </tr>
                 </thead>
                 <tbody id="ordersTableBody">
-                    <!-- Example row -->
-                    <tr>
-                        <td>1</td>
-                        <td>#101</td>
-                        <td>John Doe</td>
-                        <td>Pizza</td>
-                        <td>2</td>
-                        <td>$20.00</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning edit-btn" data-bs-toggle="modal"
-                                data-bs-target="#editOrderModal">Edit</button>
-                            <button class="btn btn-sm btn-danger delete-btn">Delete</button>
-                        </td>
-                    </tr>
+                    @forelse($foodOrders as $o)
+                        <tr>
+                            <td>{{ $o->order_id }}</td>
+                            <td>#{{ $o->booking_id }}</td>
+                            <td>{{ $o->booking->user->name ?? 'N/A' }}</td>
+                            <td>{{ $o->foodItem->name ?? 'N/A' }}</td>
+                            <td>{{ $o->quantity }}</td>
+                            <td>৳{{ number_format(optional($o->foodItem)->price * $o->quantity, 2) }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-warning edit-btn" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-id="{{ $o->order_id }}">Edit</button>
+                                    <form action="{{ route('admin.food_order.destroy', $o->order_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this order?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="7" class="text-center">No food orders found</td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -62,7 +77,8 @@
     <div class="modal fade" id="addOrderModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="addOrderForm">
+                <form id="addOrderForm" method="POST" action="{{ route('admin.food_order.store') }}">
+                    @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Add New Food Order</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -71,27 +87,26 @@
                         <!-- Booking Dropdown -->
                         <div class="mb-3">
                             <label class="form-label">Booking</label>
-                            <select id="booking_select" class="form-select" required>
+                            <select id="booking_select" name="booking_id" class="form-select" required>
                                 <option value="" disabled selected>Select Booking</option>
-                                <option value="#101|John Doe">#101 - John Doe</option>
-                                <option value="#102|Jane Smith">#102 - Jane Smith</option>
-                                <option value="#103|Mark Lee">#103 - Mark Lee</option>
-                                <!-- Add more bookings here -->
+                                @foreach($bookings as $b)
+                                    <option value="{{ $b->booking_id }}">#{{ $b->booking_id }} - {{ $b->user->name ?? 'User' }}</option>
+                                @endforeach
                             </select>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Food Item</label>
-                            <input type="text" id="food_input" class="form-control" placeholder="Food Name" required>
+                            <select id="food_input" name="food_id" class="form-select" required>
+                                <option value="" disabled selected>Select Food</option>
+                                @foreach($foodItems as $f)
+                                    <option value="{{ $f->food_id }}" data-price="{{ $f->price }}">{{ $f->name }} (৳{{ number_format($f->price, 2) }})</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Quantity</label>
-                            <input type="number" id="quantity_input" class="form-control" min="1" value="1" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Price per Unit</label>
-                            <input type="number" id="price_input" class="form-control" min="0" step="0.01" value="0.00"
-                                required>
+                            <input type="number" id="quantity_input" name="quantity" class="form-control" min="1" value="1" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -107,7 +122,9 @@
     <div class="modal fade" id="editOrderModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="editOrderForm">
+                <form id="editOrderForm" method="POST">
+                    @csrf
+                    @method('PUT')
                     <div class="modal-header">
                         <h5 class="modal-title">Edit Food Order</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -116,26 +133,26 @@
                         <!-- Booking Dropdown -->
                         <div class="mb-3">
                             <label class="form-label">Booking</label>
-                            <select id="edit_booking_select" class="form-select" required>
+                            <select id="edit_booking_select" name="booking_id" class="form-select" required>
                                 <option value="" disabled>Select Booking</option>
-                                <option value="#101|John Doe">#101 - John Doe</option>
-                                <option value="#102|Jane Smith">#102 - Jane Smith</option>
-                                <option value="#103|Mark Lee">#103 - Mark Lee</option>
+                                @foreach($bookings as $b)
+                                    <option value="{{ $b->booking_id }}">#{{ $b->booking_id }} - {{ $b->user->name ?? 'User' }}</option>
+                                @endforeach
                             </select>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Food Item</label>
-                            <input type="text" id="edit_food_input" class="form-control" required>
+                            <select id="edit_food_input" name="food_id" class="form-select" required>
+                                <option value="" disabled>Select Food</option>
+                                @foreach($foodItems as $f)
+                                    <option value="{{ $f->food_id }}" data-price="{{ $f->price }}">{{ $f->name }} (৳{{ number_format($f->price, 2) }})</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Quantity</label>
-                            <input type="number" id="edit_quantity_input" class="form-control" min="1" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Price per Unit</label>
-                            <input type="number" id="edit_price_input" class="form-control" min="0" step="0.01"
-                                required>
+                            <input type="number" id="edit_quantity_input" name="quantity" class="form-control" min="1" required>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -150,7 +167,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const ordersTableBody = document.getElementById('ordersTableBody');
-        let currentEditRow = null;
+        const editForm = document.getElementById('editOrderForm');
 
         // Search functionality
         document.getElementById('searchInput').addEventListener('keyup', function () {
@@ -160,69 +177,20 @@
             });
         });
 
-        // Add Order
-        document.getElementById('addOrderForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const bookingValue = document.getElementById('booking_select').value.split('|');
-            const bookingID = bookingValue[0];
-            const bookingName = bookingValue[1];
-            const food = document.getElementById('food_input').value;
-            const quantity = parseInt(document.getElementById('quantity_input').value);
-            const price = parseFloat(document.getElementById('price_input').value);
-            const total = (quantity * price).toFixed(2);
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${ordersTableBody.children.length + 1}</td>
-                <td>${bookingID}</td>
-                <td>${bookingName}</td>
-                <td>${food}</td>
-                <td>${quantity}</td>
-                <td>$${total}</td>
-                <td>
-                    <button class="btn btn-sm btn-warning edit-btn" data-bs-toggle="modal" data-bs-target="#editOrderModal">Edit</button>
-                    <button class="btn btn-sm btn-danger delete-btn">Delete</button>
-                </td>
-            `;
-            ordersTableBody.appendChild(row);
-            this.reset();
-            bootstrap.Modal.getInstance(document.getElementById('addOrderModal')).hide();
-        });
-
-        // Edit/Delete functionality
-        ordersTableBody.addEventListener('click', function (e) {
-            const row = e.target.closest('tr');
-            if (e.target.classList.contains('edit-btn')) {
-                currentEditRow = row;
-                document.getElementById('edit_booking_select').value = row.children[1].textContent + '|' + row.children[2].textContent;
-                document.getElementById('edit_food_input').value = row.children[3].textContent;
-                document.getElementById('edit_quantity_input').value = row.children[4].textContent;
-                document.getElementById('edit_price_input').value = (parseFloat(row.children[5].textContent.replace('$', '')) / parseInt(row.children[4].textContent)).toFixed(2);
-            }
-            if (e.target.classList.contains('delete-btn')) {
-                if (confirm('Delete this order?')) row.remove();
-            }
-        });
-
-        // Update Order
-        document.getElementById('editOrderForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            if (!currentEditRow) return;
-            const bookingValue = document.getElementById('edit_booking_select').value.split('|');
-            const bookingID = bookingValue[0];
-            const bookingName = bookingValue[1];
-            const food = document.getElementById('edit_food_input').value;
-            const quantity = parseInt(document.getElementById('edit_quantity_input').value);
-            const price = parseFloat(document.getElementById('edit_price_input').value);
-            const total = (quantity * price).toFixed(2);
-
-            currentEditRow.children[1].textContent = bookingID;
-            currentEditRow.children[2].textContent = bookingName;
-            currentEditRow.children[3].textContent = food;
-            currentEditRow.children[4].textContent = quantity;
-            currentEditRow.children[5].textContent = `$${total}`;
-
-            bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
+        // Open edit and load
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                fetch(`/adminpanel/food_order/${id}/edit`)
+                    .then(r => r.json())
+                    .then(o => {
+                        document.getElementById('edit_booking_select').value = o.booking_id;
+                        document.getElementById('edit_food_input').value = o.food_id;
+                        document.getElementById('edit_quantity_input').value = o.quantity;
+                        editForm.action = `/adminpanel/food_order/${id}`;
+                    })
+                    .catch(() => alert('Failed to load order'));
+            });
         });
     </script>
 </body>
