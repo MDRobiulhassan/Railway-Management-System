@@ -50,8 +50,8 @@
                                 <span class="badge {{ $food->availability ? 'bg-success' : 'bg-danger' }}">{{ $food->availability ? 'Available' : 'Not Available' }}</span>
                             </td>
                             <td>
-                                @if($food->image)
-                                    <img src="{{ asset('storage/' . $food->image) }}" alt="{{ $food->name }}" style="height:40px;object-fit:cover;">
+                                @if($food->image_url)
+                                    <img src="{{ $food->image_url }}" alt="{{ $food->name }}" style="height:40px;object-fit:cover;">
                                 @else
                                     -
                                 @endif
