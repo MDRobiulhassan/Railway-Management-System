@@ -19,76 +19,81 @@
             <h2>User Profile</h2>
 
             <!-- Success/Error Messages -->
+            @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                Profile updated successfully!
+                {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
+            @endif
+            @if ($errors->any())
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                Error updating profile.
+                Please correct the highlighted errors.
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
+            @endif
 
             <!-- Profile Avatar -->
-            <img src="https://ui-avatars.com/api/?name=John+Doe&size=150&background=007bff&color=fff"
+            <img src="{{ $user->photo ? asset('storage/'.$user->photo) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&size=150&background=007bff&color=fff' }}"
                 alt="Profile Photo" class="profile-avatar mb-3 rounded-circle">
 
             <!-- Profile form -->
-            <form action="" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('user.profile.update') }}" method="POST" enctype="multipart/form-data">
+                @csrf
                 <!-- Non-editable fields -->
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Email</label>
-                    <input type="email" class="form-control" value="johndoe@example.com" readonly>
+                    <input type="email" class="form-control" value="{{ $user->email }}" readonly>
                 </div>
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Role</label>
-                    <input type="text" class="form-control" value="User" readonly>
+                    <input type="text" class="form-control" value="{{ ucfirst($user->role) }}" readonly>
                 </div>
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">NID Number</label>
-                    <input type="text" class="form-control" value="1234567890" readonly>
+                    <input type="text" class="form-control" value="{{ $user->nid_number }}" readonly>
                 </div>
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">NID Verification</label>
-                    <input type="text" class="form-control" value="Verified" readonly>
+                    <input type="text" class="form-control" value="{{ $user->nid_verified ? 'Verified' : 'Not Verified' }}" readonly>
                 </div>
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Account Created</label>
-                    <input type="text" class="form-control" value="2025-09-01 12:00" readonly>
+                    <input type="text" class="form-control" value="{{ $user->created_at?->format('Y-m-d H:i') }}" readonly>
                 </div>
 
                 <!-- Editable fields -->
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Full Name</label>
-                    <input type="text" class="form-control" name="name" value="John Doe" required>
+                    <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $user->name) }}" required>
                 </div>
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Phone Number</label>
-                    <input type="text" class="form-control" name="contact_number" value="+880123456789">
+                    <input type="text" class="form-control @error('contact_number') is-invalid @enderror" name="contact_number" value="{{ old('contact_number', $user->contact_number) }}">
                 </div>
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Address</label>
-                    <input type="text" class="form-control" name="address" value="Dhaka, Bangladesh">
+                    <input type="text" class="form-control @error('address') is-invalid @enderror" name="address" value="{{ old('address', $user->address) }}">
                 </div>
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Date of Birth</label>
-                    <input type="date" class="form-control" name="dob" value="2000-01-01" required>
+                    <input type="date" class="form-control @error('dob') is-invalid @enderror" name="dob" value="{{ old('dob', optional($user->dob)->format('Y-m-d')) }}" required>
                 </div>
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Password</label>
-                    <input type="password" class="form-control" name="password" placeholder="Enter new password">
+                    <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="Enter new password">
                 </div>
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Profile Photo</label>
-                    <input type="file" class="form-control" name="photo" accept="image/*">
+                    <input type="file" class="form-control @error('photo') is-invalid @enderror" name="photo" accept="image/*">
                 </div>
 
                 <div class="d-grid mt-4">

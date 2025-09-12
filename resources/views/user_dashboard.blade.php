@@ -19,18 +19,22 @@
         <h1 class="dashboard-heading text-center">User Dashboard</h1>
 
         <!-- Success/Error Messages -->
+        @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            Profile updated successfully!
+            {{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+        @endif
 
+        @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            Error updating profile.
+            {{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+        @endif
 
-        <!-- Upcoming Bookings -->
-        <h3 class="section-heading">Upcoming Bookings</h3>
+        <!-- Bookings -->
+        <h3 class="section-heading">Your Bookings</h3>
         <hr>
         <div class="table-responsive">
             <table class="table table-striped table-bordered align-middle">
@@ -38,94 +42,46 @@
                     <tr>
                         <th>Booking ID</th>
                         <th>Train</th>
-                        <th>From</th>
-                        <th>To</th>
-                        <th>Departure</th>
-                        <th>Arrival</th>
+                        <th>Compartment</th>
+                        <th>Seats</th>
+                        <th>Travel Date</th>
                         <th>Status</th>
+                        <th>Total</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>BK1001</td>
-                        <td>Rajdhani Express</td>
-                        <td>Dhaka</td>
-                        <td>Chittagong</td>
-                        <td>2025-09-10 08:00</td>
-                        <td>2025-09-10 14:00</td>
-                        <td><span class="badge bg-success">Confirmed</span></td>
-                        <td>
-                            <button class="btn btn-info btn-sm">View Ticket</button>
-                            <button class="btn btn-primary btn-sm">Download Ticket</button>
-                            <button class="btn btn-danger btn-sm">Cancel Ticket</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>BK1002</td>
-                        <td>Sundarban Express</td>
-                        <td>Dhaka</td>
-                        <td>Khulna</td>
-                        <td>2025-09-15 09:00</td>
-                        <td>2025-09-15 16:00</td>
-                        <td><span class="badge bg-warning text-dark">Pending</span></td>
-                        <td>
-                            <button class="btn btn-info btn-sm">View Ticket</button>
-                            <button class="btn btn-primary btn-sm">Download Ticket</button>
-                            <button class="btn btn-danger btn-sm">Cancel Ticket</button>
-                        </td>
-                    </tr>
+                    @isset($bookings)
+                    @forelse($bookings as $booking)
+                        @php
+                            $firstTicket = $booking->tickets->first();
+                            $compartment = $firstTicket?->compartment;
+                            $seatList = $booking->tickets->map(fn($t) => $t->seat?->seat_number)->filter()->implode(', ');
+                            $travelDate = $firstTicket?->travel_date?->format('Y-m-d');
+                        @endphp
+                        <tr>
+                            <td>{{ $booking->booking_id }}</td>
+                            <td>{{ $booking->train->train_name }}</td>
+                            <td>{{ $compartment?->compartment_name }} ({{ $compartment?->class_name }})</td>
+                            <td>{{ $seatList }}</td>
+                            <td>{{ $travelDate }}</td>
+                            <td><span class="badge {{ $booking->status === 'confirmed' ? 'bg-success' : ($booking->status === 'pending' ? 'bg-warning text-dark' : 'bg-secondary') }}">{{ ucfirst($booking->status) }}</span></td>
+                            <td>{{ number_format($booking->total_amount, 2) }} BDT</td>
+                            <td>
+                                <a class="btn btn-info btn-sm" href="{{ route('ticket.view', $booking->booking_id) }}">View Ticket</a>
+                                <a class="btn btn-primary btn-sm" href="{{ route('ticket.download', $booking->booking_id) }}">Download Ticket</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center">No bookings found.</td>
+                        </tr>
+                    @endforelse
+                    @endisset
                 </tbody>
             </table>
         </div>
 
-        <!-- Past Bookings -->
-        <h3 class="section-heading">Past Bookings</h3>
-        <hr>
-        <div class="table-responsive">
-            <table class="table table-striped table-bordered align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Booking ID</th>
-                        <th>Train</th>
-                        <th>From</th>
-                        <th>To</th>
-                        <th>Departure</th>
-                        <th>Arrival</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>BK0999</td>
-                        <td>Suborno Express</td>
-                        <td>Dhaka</td>
-                        <td>Sylhet</td>
-                        <td>2025-08-25 07:00</td>
-                        <td>2025-08-25 12:00</td>
-                        <td><span class="badge bg-secondary">Completed</span></td>
-                        <td>
-                            <button class="btn btn-info btn-sm">View Ticket</button>
-                            <button class="btn btn-primary btn-sm">Download Ticket</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>BK0998</td>
-                        <td>Chattogram Express</td>
-                        <td>Dhaka</td>
-                        <td>Chittagong</td>
-                        <td>2025-08-20 06:30</td>
-                        <td>2025-08-20 13:00</td>
-                        <td><span class="badge bg-danger">Cancelled</span></td>
-                        <td>
-                            <button class="btn btn-info btn-sm">View Ticket</button>
-                            <button class="btn btn-primary btn-sm">Download Ticket</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
     </div>
 
     <!-- Footer -->
