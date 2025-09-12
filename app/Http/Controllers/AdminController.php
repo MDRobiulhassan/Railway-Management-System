@@ -321,11 +321,17 @@ class AdminController extends Controller
     public function storeNid(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,user_id|unique:nid_db,user_id',
-            'nid_number' => 'required|string|max:255',
+            'nid_number' => 'required|string|unique:nid_db,nid_number',
             'name' => 'required|string|max:255',
             'dob' => 'required|date',
         ]);
+
+        // Generate auto-incrementing user_id
+        $lastNid = NidDb::orderBy('user_id', 'desc')->first();
+        $nextUserId = $lastNid ? $lastNid->user_id + 1 : 1;
+        
+        $validated['user_id'] = $nextUserId;
+
         NidDb::create($validated);
         return redirect()->route('admin.nid')->with('success', 'NID record created successfully');
     }

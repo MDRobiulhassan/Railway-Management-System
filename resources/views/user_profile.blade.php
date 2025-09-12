@@ -33,8 +33,11 @@
             @endif
 
             <!-- Profile Avatar -->
-            <img src="{{ $user->photo ? asset('storage/'.$user->photo) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&size=150&background=007bff&color=fff' }}"
-                alt="Profile Photo" class="profile-avatar mb-3 rounded-circle">
+            @if($user->photo && file_exists(public_path('storage/' . $user->photo)))
+                <img src="{{ asset('storage/' . $user->photo) }}" alt="Profile Photo" class="profile-avatar mb-3 rounded-circle">
+            @else
+                <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&size=150&background=007bff&color=fff" alt="Profile Photo" class="profile-avatar mb-3 rounded-circle">
+            @endif
 
             <!-- Profile form -->
             <form action="{{ route('user.profile.update') }}" method="POST" enctype="multipart/form-data">

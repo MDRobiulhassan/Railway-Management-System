@@ -96,10 +96,6 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="add_user_id" class="form-label">User ID</label>
-                            <input type="number" class="form-control" id="add_user_id" name="user_id" required>
-                        </div>
-                        <div class="mb-3">
                             <label for="add_nid_number" class="form-label">NID Number</label>
                             <input type="text" class="form-control" id="add_nid_number" name="nid_number" required>
                         </div>

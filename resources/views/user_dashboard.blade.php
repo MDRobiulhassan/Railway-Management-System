@@ -33,8 +33,8 @@
         </div>
         @endif
 
-        <!-- Bookings -->
-        <h3 class="section-heading">Your Bookings</h3>
+        <!-- Upcoming Bookings -->
+        <h3 class="section-heading">Upcoming Bookings</h3>
         <hr>
         <div class="table-responsive">
             <table class="table table-striped table-bordered align-middle">
@@ -51,8 +51,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @isset($bookings)
-                    @forelse($bookings as $booking)
+                    @isset($upcomingBookings)
+                    @forelse($upcomingBookings as $booking)
                         @php
                             $firstTicket = $booking->tickets->first();
                             $compartment = $firstTicket?->compartment;
@@ -74,7 +74,56 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center">No bookings found.</td>
+                            <td colspan="8" class="text-center">No upcoming bookings found.</td>
+                        </tr>
+                    @endforelse
+                    @endisset
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Past Bookings -->
+        <h3 class="section-heading mt-5">Past Bookings</h3>
+        <hr>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Train</th>
+                        <th>Compartment</th>
+                        <th>Seats</th>
+                        <th>Travel Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @isset($pastBookings)
+                    @forelse($pastBookings as $booking)
+                        @php
+                            $firstTicket = $booking->tickets->first();
+                            $compartment = $firstTicket?->compartment;
+                            $seatList = $booking->tickets->map(fn($t) => $t->seat?->seat_number)->filter()->implode(', ');
+                            $travelDate = $firstTicket?->travel_date?->format('Y-m-d');
+                        @endphp
+                        <tr>
+                            <td>{{ $booking->booking_id }}</td>
+                            <td>{{ $booking->train->train_name }}</td>
+                            <td>{{ $compartment?->compartment_name }} ({{ $compartment?->class_name }})</td>
+                            <td>{{ $seatList }}</td>
+                            <td>{{ $travelDate }}</td>
+                            <td><span class="badge {{ $booking->status === 'confirmed' ? 'bg-success' : ($booking->status === 'pending' ? 'bg-warning text-dark' : 'bg-secondary') }}">{{ ucfirst($booking->status) }}</span></td>
+                            <td>{{ number_format($booking->total_amount, 2) }} BDT</td>
+                            <td>
+                                <a class="btn btn-info btn-sm" href="{{ route('ticket.view', $booking->booking_id) }}">View Ticket</a>
+                                <a class="btn btn-primary btn-sm" href="{{ route('ticket.download', $booking->booking_id) }}">Download Ticket</a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center">No past bookings found.</td>
                         </tr>
                     @endforelse
                     @endisset
