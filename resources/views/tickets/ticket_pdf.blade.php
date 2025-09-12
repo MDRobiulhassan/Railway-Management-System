@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Flight Ticket - {{ $booking->flight->flight_number }}</title>
+    <title>Train Ticket - Booking {{ $booking->booking_id }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -193,24 +193,21 @@
     <!-- First Page -->
     <div class="ticket-container">
         <div class="ticket-header">
-            <h1>Bangladesh Airlines</h1>
-            <h3>Flight Ticket</h3>
+            <h1>Bangladesh Railways</h1>
+            <h3>Train Ticket</h3>
             <p>Booking ID: {{ $booking->booking_id }}</p>
         </div>
 
         <div class="ticket-body">
-            <!-- Flight Info -->
+            <!-- Train Info -->
             <div class="section">
-                <h4>Flight Details</h4>
+                <h4>Train Details</h4>
                 <div class="row">
                     <div class="col">
-                        Flight No: {{ $booking->flight->flight_number }}<br>
-                        Aircraft: {{ $booking->flight->aircraft->model }}<br>
-                        Gate: {{ $booking->flight->gate ?? 'TBA' }}<br>
-                        Terminal: {{ $booking->flight->terminal ?? 'TBA' }}
+                        Train: {{ $booking->train->train_name }}<br>
+                        Type: {{ $booking->train->train_type }}
                     </div>
                     <div class="col">
-                        Duration: {{ $booking->flight->duration_minutes }} mins<br>
                         Status:
                         <span
                             class="badge badge-{{ $booking->status === 'confirmed' ? 'success' : ($booking->status === 'pending' ? 'warning' : 'secondary') }}">
@@ -226,17 +223,13 @@
                 <h4>Route Information</h4>
                 <div class="route-info">
                     <div class="airport">
-                        <strong>{{ $booking->flight->departureAirport->city }}</strong><br>
-                        ({{ $booking->flight->departureAirport->code }})<br>
-                        {{ $booking->flight->departureAirport->name }}<br>
-                        {{ $booking->flight->departure_time->format('Y-m-d H:i') }}
+                        <strong>From: {{ $schedule?->sourceStation?->name ?? '—' }}</strong><br>
+                        Departure: {{ $schedule?->departure_time?->format('Y-m-d H:i') ?? ($booking->tickets->first()?->travel_date?->format('Y-m-d') ?? '—') }}
                     </div>
                     <div class="flight-arrow">---></div>
                     <div class="airport">
-                        <strong>{{ $booking->flight->arrivalAirport->city }}</strong><br>
-                        ({{ $booking->flight->arrivalAirport->code }})<br>
-                        {{ $booking->flight->arrivalAirport->name }}<br>
-                        {{ $booking->flight->arrival_time->format('Y-m-d H:i') }}
+                        <strong>To: {{ $schedule?->destinationStation?->name ?? '—' }}</strong><br>
+                        Arrival: {{ $schedule?->arrival_time?->format('Y-m-d H:i') ?? '—' }}
                     </div>
                 </div>
             </div>
@@ -252,7 +245,7 @@
                     </div>
                     <div class="col">
                         NID: {{ $booking->user->nid_number }}<br>
-                        DOB: {{ $booking->user->dob->format('Y-m-d') }}<br>
+                        DOB: {{ optional($booking->user->dob)->format('Y-m-d') }}<br>
                         Paid: {{ number_format($booking->total_amount, 2) }} BDT
                     </div>
                 </div>
@@ -267,14 +260,14 @@
                             <tr>
                                 <th>Ticket ID</th>
                                 <th>Seat</th>
-                                <th>Class</th>
+                                <th>Compartment</th>
                                 <th>Date</th>
                                 <th>Status</th>
                             </tr>
                             <tr>
                                 <td>{{ $ticket->ticket_id }}</td>
                                 <td>{{ $ticket->seat->seat_number }}</td>
-                                <td>{{ $ticket->seatClass->name ?? 'N/A' }}</td>
+                                <td>{{ $ticket->compartment?->compartment_name }} ({{ $ticket->compartment?->class_name }})</td>
                                 <td>{{ $ticket->travel_date->format('Y-m-d') }}</td>
                                 <td>
                                     <span
@@ -319,7 +312,7 @@
             @endif
 
             <div class="footer">
-                Thank you for flying with Bangladesh Airlines<br>
+                Thank you for traveling with Bangladesh Railways<br>
                 Generated on: {{ now()->format('Y-m-d H:i:s') }}
             </div>
         </div>
@@ -329,26 +322,31 @@
     <div class="page-break">
         <div class="second-page-header">
             <h2>Important Travel Information</h2>
-            <p>Booking: {{ $booking->booking_id }} | Flight: {{ $booking->flight->flight_number }}</p>
+            <p>Booking: {{ $booking->booking_id }} | Train: {{ $booking->train->train_name }}</p>
         </div>
 
         <div style="padding: 15px;">
             <div class="important-info">
                 <h4>Travel Guidelines</h4>
-                <ul>
-                    <li>Check-in at least 2h before international flights, 1h before domestic.</li>
-                    <li>Valid government-issued photo ID required.</li>
-                    <li>Baggage Allowance: Economy 20kg, Business 30kg, First 40kg.</li>
-                    <li>Prohibited items include sharp objects, flammables, liquids >100ml.</li>
-                    <li>Tickets are non-transferable and non-refundable.</li>
-                    <li>Boarding starts 30 minutes before departure.</li>
-                </ul>
+                <p><strong>Bangladesh Railway Travel Guidelines:</strong></p>
+                <ol style="margin-left: 18px;">
+                    <li>Buy tickets only from official sources (online/app/counters).</li>
+                    <li>Max 4 tickets per person per transaction (ID required).</li>
+                    <li>Carry the same ID used for booking during travel.</li>
+                    <li>Children 3–12 need minor tickets; below 3 years free.</li>
+                    <li>Arrive at station 30–40 mins before departure.</li>
+                    <li>Sit in your assigned seat only; show ticket + ID when asked.</li>
+                    <li>No roof/buffer riding, smoking, or traveling without a ticket.</li>
+                    <li>Keep compartments clean; secure your luggage.</li>
+                    <li>No platform entry without a valid ticket during rush times.</li>
+                    <li>Trains may be delayed in fog/rain—follow announcements.</li>
+                </ol>
             </div>
 
             <div class="contact-section">
                 Emergency: +880-1636-114935<br>
-                Website: www.bangladeshairlines.com<br>
-                Email: support@bangladeshairlines.com<br>
+                Website: https://railapp.railway.gov.bd/<br>
+                Email: support@eticket.railway.gov.bd<br>
                 <small>This document is computer generated and does not require a signature.<br>
                     Generated: {{ now()->format('Y-m-d H:i:s') }}</small>
             </div>

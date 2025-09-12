@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Ticket - {{ $booking->flight->flight_number }}</title>
+    <title>Rail Ticket - Booking {{ $booking->booking_id }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/search.css') }}">
     <link rel="stylesheet" href="{{ asset('css/welcome.css') }}">
@@ -221,24 +221,21 @@
         <!-- Ticket Container -->
         <div class="ticket-container">
             <div class="ticket-header">
-                <h1><i class="fas fa-plane"></i> Bangladesh Airlines</h1>
-                <h3>Flight Ticket</h3>
+                <h1><i class="fas fa-train"></i> Bangladesh Railways</h1>
+                <h3>Train Ticket</h3>
                 <p><strong>Booking ID:</strong> {{ $booking->booking_id }}</p>
             </div>
 
             <div class="ticket-body">
-                <!-- Flight Info -->
+                <!-- Train Info -->
                 <div class="section">
-                    <h4><i class="fas fa-info-circle"></i> Flight Details</h4>
+                    <h4><i class="fas fa-info-circle"></i> Train Details</h4>
                     <div class="row">
                         <div class="col-md-6">
-                            <strong>Flight No:</strong> {{ $booking->flight->flight_number }}<br>
-                            <strong>Aircraft:</strong> {{ $booking->flight->aircraft->model }}<br>
-                            <strong>Gate:</strong> {{ $booking->flight->gate ?? 'TBA' }}<br>
-                            <strong>Terminal:</strong> {{ $booking->flight->terminal ?? 'TBA' }}
+                            <strong>Train:</strong> {{ $booking->train->train_name }}<br>
+                            <strong>Type:</strong> {{ $booking->train->train_type }}<br>
                         </div>
                         <div class="col-md-6">
-                            <strong>Duration:</strong> {{ $booking->flight->duration_minutes }} mins<br>
                             <strong>Status:</strong>
                             <span class="badge badge-{{ $booking->status === 'confirmed' ? 'success' : ($booking->status === 'pending' ? 'warning' : 'secondary') }}">
                                 {{ ucfirst($booking->status) }}
@@ -253,19 +250,17 @@
                     <h4><i class="fas fa-route"></i> Route Information</h4>
                     <div class="route-info">
                         <div class="airport">
-                            <h5><strong>{{ $booking->flight->departureAirport->city }}</strong></h5>
-                            <p><strong>({{ $booking->flight->departureAirport->code }})</strong><br>
-                            {{ $booking->flight->departureAirport->name }}<br>
-                            <strong>Departure:</strong> {{ $booking->flight->departure_time->format('Y-m-d H:i') }}</p>
+                            <h5><strong>{{ $booking->tickets->first()?->compartment?->class_name }}</strong></h5>
+                            <p><strong>From:</strong> {{ $schedule?->sourceStation?->name ?? '—' }}<br>
+                            <strong>Departure:</strong> {{ $schedule?->departure_time?->format('Y-m-d H:i') ?? ($booking->tickets->first()?->travel_date?->format('Y-m-d') ?? '—') }}</p>
                         </div>
                         <div class="flight-arrow">
-                            <i class="fas fa-plane"></i>
+                            <i class="fas fa-train"></i>
                         </div>
                         <div class="airport">
-                            <h5><strong>{{ $booking->flight->arrivalAirport->city }}</strong></h5>
-                            <p><strong>({{ $booking->flight->arrivalAirport->code }})</strong><br>
-                            {{ $booking->flight->arrivalAirport->name }}<br>
-                            <strong>Arrival:</strong> {{ $booking->flight->arrival_time->format('Y-m-d H:i') }}</p>
+                            <h5><strong>&nbsp;</strong></h5>
+                            <p><strong>To:</strong> {{ $schedule?->destinationStation?->name ?? '—' }}<br>
+                            <strong>Arrival:</strong> {{ $schedule?->arrival_time?->format('Y-m-d H:i') ?? '—' }}</p>
                         </div>
                     </div>
                 </div>
@@ -281,7 +276,7 @@
                         </div>
                         <div class="col-md-6">
                             <strong>NID:</strong> {{ $booking->user->nid_number }}<br>
-                            <strong>DOB:</strong> {{ $booking->user->dob->format('Y-m-d') }}<br>
+                            <strong>DOB:</strong> {{ optional($booking->user->dob)->format('Y-m-d') }}<br>
                             <strong>Total Paid:</strong> {{ number_format($booking->total_amount, 2) }} BDT
                         </div>
                     </div>
@@ -297,7 +292,7 @@
                                     <tr>
                                         <th>Ticket ID</th>
                                         <th>Seat</th>
-                                        <th>Class</th>
+                                        <th>Compartment</th>
                                         <th>Date</th>
                                         <th>Status</th>
                                     </tr>
@@ -306,7 +301,7 @@
                                     <tr>
                                         <td>{{ $ticket->ticket_id }}</td>
                                         <td>{{ $ticket->seat->seat_number }}</td>
-                                        <td>{{ $ticket->seatClass->name ?? 'N/A' }}</td>
+                                        <td>{{ $ticket->compartment?->compartment_name }} ({{ $ticket->compartment?->class_name }})</td>
                                         <td>{{ $ticket->travel_date->format('Y-m-d') }}</td>
                                         <td>
                                             <span class="badge badge-{{ $ticket->ticket_status === 'active' ? 'success' : ($ticket->ticket_status === 'used' ? 'secondary' : 'danger') }}">
@@ -355,7 +350,7 @@
                 @endif
 
                 <div class="footer">
-                    <p><i class="fas fa-heart"></i> Thank you for flying with Bangladesh Airlines</p>
+                    <p><i class="fas fa-heart"></i> Thank you for traveling with Bangladesh Railways</p>
                     <small>Generated on: {{ now()->format('Y-m-d H:i:s') }}</small>
                 </div>
             </div>

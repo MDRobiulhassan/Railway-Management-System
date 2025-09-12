@@ -31,9 +31,6 @@
                 <label for="class" class="form-label fw-bold">Select Class:</label>
                 <select id="class" name="class" class="form-select w-50 mx-auto fw-bold" required>
                     <option selected disabled>Choose class</option>
-                    @foreach($compartments as $class => $comps)
-                        <option value="{{ $class }}">{{ ucfirst($class) }}</option>
-                    @endforeach
                 </select>
             </div>
 
@@ -79,6 +76,7 @@
         const seatPrice = 350;
         const selectedSeats = new Set();
         const takenSeats = @json($bookedSeats);
+        // Normalize data coming from Laravel collections
         const compartments = @json($compartments);
         const seats = @json($seats);
         const ticketPrices = @json($ticketPrices);
@@ -93,18 +91,32 @@
         const compartmentSection = document.getElementById('compartment-section');
         const seatLayout = document.getElementById('seat-layout');
 
+        // Populate class dropdown reliably from data keys
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const classKeys = Object.keys(compartments || {});
+                classKeys.forEach(k => {
+                    const opt = document.createElement('option');
+                    opt.value = k;
+                    opt.textContent = k.charAt(0).toUpperCase() + k.slice(1);
+                    classDropdown.appendChild(opt);
+                });
+            } catch (e) {
+                console.error('Failed to populate classes', e);
+            }
+        });
+
         classDropdown.addEventListener('change', () => {
             const selectedClass = classDropdown.value;
             compartmentDropdown.innerHTML = '<option selected disabled>Choose compartment</option>';
             
-            if (compartments[selectedClass]) {
-                compartments[selectedClass].forEach(comp => {
+            const comps = compartments[selectedClass] || [];
+            comps.forEach(comp => {
                     const option = document.createElement('option');
                     option.value = comp.compartment_id;
                     option.textContent = comp.compartment_name;
                     compartmentDropdown.appendChild(option);
                 });
-            }
             
             compartmentSection.style.display = 'block';
             seatSection.style.display = 'none';
@@ -221,7 +233,7 @@
                 seatNumbers.length ? seatNumbers.join(', ') : 'None';
 
             const selectedClass = classDropdown.value;
-            const currentPrice = ticketPrices && ticketPrices[selectedClass] ? ticketPrices[selectedClass].base_price : seatPrice;
+            const currentPrice = ticketPrices && ticketPrices[selectedClass] ? (ticketPrices[selectedClass].base_price || ticketPrices[selectedClass]) : seatPrice;
             
             document.getElementById('total-price').textContent =
                 '৳ ' + (selectedSeats.size * currentPrice);

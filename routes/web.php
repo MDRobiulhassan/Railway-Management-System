@@ -41,13 +41,16 @@ Route::post('/booking-finalize', [App\Http\Controllers\BookingController::class,
 
 // Protected user routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/user_dashboard', function () {
-        return view('user_dashboard');
-    })->name('user.dashboard');
+    Route::get('/user_dashboard', [App\Http\Controllers\UserDashboardController::class, 'index'])->name('user.dashboard');
 
-    Route::get('/user_profile', function () {
-        return view('user_profile');
-    })->name('user.profile');
+    Route::get('/user_profile', [App\Http\Controllers\UserProfileController::class, 'show'])->name('user.profile');
+    Route::post('/user_profile', [App\Http\Controllers\UserProfileController::class, 'update'])->name('user.profile.update');
+});
+
+// Ticket routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/tickets/{booking}', [App\Http\Controllers\TicketController::class, 'show'])->name('ticket.view');
+    Route::get('/tickets/{booking}/download', [App\Http\Controllers\TicketController::class, 'download'])->name('ticket.download');
 });
 
 // Admin routes (protected by auth middleware)
