@@ -439,11 +439,12 @@ class AdminController extends Controller
     }
 
     // Seats
-    public function seats()
+    public function seats(Request $request)
     {
+        // Paginate seats directly with 100 seats per page
         $seats = Seat::with(['compartment.train'])
             ->orderBy('seat_id', 'asc')
-            ->get();
+            ->paginate(100);
             
         $trains = Train::orderBy('train_id', 'asc')->get();
         $compartments = Compartment::orderBy('compartment_id', 'asc')->get(['compartment_id', 'compartment_name', 'class_name', 'train_id']);
