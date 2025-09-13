@@ -30,45 +30,85 @@
             </button>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Seat ID</th>
-                        <th>Train Name</th>
-                        <th>Compartment</th>
-                        <th>Class Name</th>
-                        <th>Seat Number</th>
-                        <th>Availability</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="seatTableBody">
-                    @forelse($seats as $s)
-                        <tr>
-                            <td>{{ $s->seat_id }}</td>
-                            <td>{{ $s->train->train_name ?? 'N/A' }}</td>
-                            <td>{{ $s->compartment->compartment_name ?? 'N/A' }}</td>
-                            <td>{{ $s->compartment->class_name ?? 'N/A' }}</td>
-                            <td>{{ $s->seat_number }}</td>
-                            <td><span class="badge {{ $s->is_available ? 'bg-success' : 'bg-danger' }}">{{ $s->is_available ? 'Available' : 'Unavailable' }}</span></td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-warning edit-seat-btn" data-bs-toggle="modal" data-bs-target="#seatModal" data-id="{{ $s->seat_id }}">Edit</button>
-                                    <form action="{{ route('admin.seats.destroy', $s->seat_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this seat?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="7" class="text-center">No seats found</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @php
+            $groupedSeats = $seats->groupBy(function($seat) {
+                return $seat->compartment->train_id ?? 'unknown';
+            });
+        @endphp
+
+        @forelse($groupedSeats as $trainId => $trainSeats)
+            @php
+                $firstSeat = $trainSeats->first();
+                $trainName = $firstSeat->train->train_name ?? 'N/A';
+                $seatCount = $trainSeats->count();
+            @endphp
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        {{ $trainName }}
+                        <span class="badge bg-primary ms-2">{{ $seatCount }} seats</span>
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Seat ID</th>
+                                <th>Compartment</th>
+                                <th>Class</th>
+                                <th>Seat Number</th>
+                                <th>Availability</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($trainSeats as $s)
+                                <tr>
+                                    <td>{{ $s->seat_id }}</td>
+                                    <td>{{ $s->compartment->compartment_name ?? 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            @if(($s->compartment->class_name ?? '') === 'AC') bg-success
+                                            @elseif(($s->compartment->class_name ?? '') === 'Snigdha') bg-warning
+                                            @elseif(($s->compartment->class_name ?? '') === 'Shovan') bg-info
+                                            @else bg-secondary
+                                            @endif">
+                                            {{ $s->compartment->class_name ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $s->seat_number }}</td>
+                                    <td>
+                                        <span class="badge {{ $s->is_available ? 'bg-success' : 'bg-danger' }}">
+                                            {{ $s->is_available ? 'Available' : 'Unavailable' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-warning edit-seat-btn" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#seatModal" 
+                                                data-id="{{ $s->seat_id }}">
+                                                Edit
+                                            </button>
+                                            <form action="{{ route('admin.seats.destroy', $s->seat_id) }}" 
+                                                method="POST" 
+                                                style="display:inline;" 
+                                                onsubmit="return confirm('Delete this seat?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @empty
+            <div class="alert alert-info">No seats found</div>
+        @endforelse
     </div>
 
     <!-- Modal for Add/Edit Seat -->

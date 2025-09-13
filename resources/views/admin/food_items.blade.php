@@ -24,59 +24,76 @@
             </button>
         </div>
 
-        <div class="table-container">
-            <table class="table table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Food ID</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Description</th>
-                        <th>Price</th>
-                        <th>Availability</th>
-                        <th>Image</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="foodTableBody">
-                    @forelse($foodItems as $food)
-                        <tr>
-                            <td>{{ $food->food_id }}</td>
-                            <td>{{ $food->name }}</td>
-                            <td>{{ $food->category ?? '-' }}</td>
-                            <td>{{ $food->description ?? '-' }}</td>
-                            <td>৳{{ number_format($food->price ?? 0, 2) }}</td>
-                            <td>
-                                <span class="badge {{ $food->availability ? 'bg-success' : 'bg-danger' }}">{{ $food->availability ? 'Available' : 'Not Available' }}</span>
-                            </td>
-                            <td>
-                                @if($food->image_url)
-                                    <img src="{{ $food->image_url }}" alt="{{ $food->name }}" style="height:40px;object-fit:cover;">
-                                @else
-                                    -
-                                @endif
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-warning edit-food-btn" data-bs-toggle="modal"
-                                        data-bs-target="#editFoodModal" data-food-id="{{ $food->food_id }}">Edit</button>
-                                    <form action="{{ route('admin.food_items.destroy', $food->food_id) }}" method="POST" style="display:inline;"
-                                        onsubmit="return confirm('Delete this food item?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="text-center">No food items found</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @forelse($categories as $category)
+            @if(isset($foodItems[$category]) && $foodItems[$category]->isNotEmpty())
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            {{ $category ?? 'Uncategorized' }}
+                            <span class="badge bg-light text-dark ms-2">
+                                {{ $foodItems[$category]->count() }} items
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Food ID</th>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Price</th>
+                                    <th>Availability</th>
+                                    <th>Image</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($foodItems[$category] as $food)
+                                    <tr>
+                                        <td>{{ $food->food_id }}</td>
+                                        <td>{{ $food->name }}</td>
+                                        <td>{{ $food->description ?? '-' }}</td>
+                                        <td>৳{{ number_format($food->price ?? 0, 2) }}</td>
+                                        <td>
+                                            <span class="badge {{ $food->availability ? 'bg-success' : 'bg-danger' }}">
+                                                {{ $food->availability ? 'Available' : 'Not Available' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @if($food->image_url)
+                                                <img src="{{ $food->image_url }}" alt="{{ $food->name }}" style="height:40px;object-fit:cover;">
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-warning edit-food-btn" 
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editFoodModal" 
+                                                    data-food-id="{{ $food->food_id }}">
+                                                    Edit
+                                                </button>
+                                                <form action="{{ route('admin.food_items.destroy', $food->food_id) }}" 
+                                                    method="POST" style="display:inline;"
+                                                    onsubmit="return confirm('Delete this food item?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+        @empty
+            <div class="alert alert-info">No food items found</div>
+        @endforelse
     </div>
 
     <!-- Add Food Modal -->

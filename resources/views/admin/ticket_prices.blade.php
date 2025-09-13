@@ -38,58 +38,72 @@
             </button>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Price ID</th>
-                        <th>Train Name</th>
-                        <th>Compartment</th>
-                        <th>Class</th>
-                        <th>Base Price</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="priceTableBody">
-                    @forelse($ticketPrices as $ticketPrice)
-                        <tr>
-                            <td>{{ $ticketPrice->price_id }}</td>
-                            <td>{{ $ticketPrice->train->train_name ?? 'N/A' }}</td>
-                            <td>{{ $ticketPrice->compartment->compartment_name ?? 'N/A' }}</td>
-                            <td>
-                                @php($className = optional($ticketPrice->compartment)->class_name)
-                                <span class="badge 
-                                    @if($className === 'AC') bg-success
-                                    @elseif($className === 'Snigdha') bg-warning
-                                    @elseif($className === 'Shovan') bg-info
-                                    @else bg-secondary
-                                    @endif">
-                                    {{ $className ?? 'N/A' }}
-                                </span>
-                            </td>
-                            <td>৳{{ number_format($ticketPrice->base_price, 2) }}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-warning edit-price-btn" data-bs-toggle="modal"
-                                        data-bs-target="#priceModal" data-price-id="{{ $ticketPrice->price_id }}">Edit</button>
-                                    
-                                    <form action="{{ route('admin.ticket_prices.destroy', $ticketPrice->price_id) }}" method="POST" style="display:inline;"
-                                        onsubmit="return confirm('Are you sure you want to delete this price?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center">No ticket prices found</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @forelse($trains as $trainId => $train)
+            @if(isset($ticketPrices[$trainId]) && $ticketPrices[$trainId]->isNotEmpty())
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            {{ $train->train_name ?? 'N/A' }}
+                            <span class="badge bg-light text-dark ms-2">
+                                {{ $ticketPrices[$trainId]->count() }} price entries
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Price ID</th>
+                                    <th>Compartment</th>
+                                    <th>Class</th>
+                                    <th>Base Price</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($ticketPrices[$trainId] as $price)
+                                    <tr>
+                                        <td>{{ $price->price_id }}</td>
+                                        <td>{{ $price->compartment->compartment_name ?? 'N/A' }}</td>
+                                        <td>
+                                            @php($className = optional($price->compartment)->class_name)
+                                            <span class="badge 
+                                                @if($className === 'AC') bg-success
+                                                @elseif($className === 'Snigdha') bg-warning
+                                                @elseif($className === 'Shovan') bg-info
+                                                @else bg-secondary
+                                                @endif">
+                                                {{ $className ?? 'N/A' }}
+                                            </span>
+                                        </td>
+                                        <td>৳{{ number_format($price->base_price, 2) }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-warning edit-price-btn" 
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#priceModal" 
+                                                    data-price-id="{{ $price->price_id }}">
+                                                    Edit
+                                                </button>
+                                                <form action="{{ route('admin.ticket_prices.destroy', $price->price_id) }}" 
+                                                    method="POST" style="display:inline;"
+                                                    onsubmit="return confirm('Are you sure you want to delete this price?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+        @empty
+            <div class="alert alert-info">No ticket prices found</div>
+        @endforelse
     </div>
 
     <!-- Modal for Add/Edit Price -->
