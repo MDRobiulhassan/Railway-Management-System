@@ -109,6 +109,15 @@
         @empty
             <div class="alert alert-info">No seats found</div>
         @endforelse
+
+        <!-- Pagination -->
+        @if($seats->hasPages())
+            <div class="d-flex justify-content-center">
+                <nav aria-label="Seats pagination">
+                    {{ $seats->links('pagination::bootstrap-4') }}
+                </nav>
+            </div>
+        @endif
     </div>
 
     <!-- Modal for Add/Edit Seat -->
