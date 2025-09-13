@@ -38,63 +38,74 @@
             </button>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Ticket ID</th>
-                        <th>Booking ID</th>
-                        <th>Booking Name</th>
-                        <th>Seat</th>
-                        <th>Compartment</th>
-                        <th>Class</th>
-                        <th>Travel Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="ticketTableBody">
-                    @forelse($tickets as $ticket)
-                        <tr>
-                            <td>{{ $ticket->ticket_id }}</td>
-                            <td>{{ $ticket->booking_id }}</td>
-                            <td>{{ $ticket->booking->user->name ?? 'N/A' }}</td>
-                            <td>{{ $ticket->seat->seat_number ?? 'N/A' }}</td>
-                            <td>{{ $ticket->compartment->compartment_name ?? 'N/A' }}</td>
-                            <td>{{ $ticket->compartment->class_name ?? 'N/A' }}</td>
-                            <td>{{ $ticket->travel_date ? $ticket->travel_date->format('Y-m-d') : 'N/A' }}</td>
-                            <td>
-                                <span class="badge 
-                                    @if($ticket->ticket_status === 'active') bg-success
-                                    @elseif($ticket->ticket_status === 'cancelled') bg-danger
-                                    @elseif($ticket->ticket_status === 'used') bg-secondary
-                                    @else bg-warning
-                                    @endif">
-                                    {{ ucfirst($ticket->ticket_status) }}
-                                </span>
-                            </td>
-                        <td>
-                            <div class="btn-group">
-                                    <button class="btn btn-sm btn-warning edit-ticket-btn" data-bs-toggle="modal"
-                                        data-bs-target="#ticketModal" data-ticket-id="{{ $ticket->ticket_id }}">Edit</button>
-                                    
-                                    <form action="{{ route('admin.tickets.destroy', $ticket->ticket_id) }}" method="POST" style="display:inline;"
-                                        onsubmit="return confirm('Are you sure you want to delete this ticket?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                    </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="text-center">No tickets found</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @forelse($ticketsBySchedule as $scheduleKey => $scheduleData)
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        {{ $scheduleData['train_name'] }} - {{ $scheduleData['route'] }}
+                        <small class="ms-2">{{ $scheduleData['departure_time'] }}</small>
+                        <span class="badge bg-light text-dark ms-2">
+                            {{ $scheduleData['tickets']->count() }} tickets
+                        </span>
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Booking ID</th>
+                                <th>Passenger Name</th>
+                                <th>Seat</th>
+                                <th>Compartment</th>
+                                <th>Class</th>
+                                <th>Travel Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($scheduleData['tickets'] as $ticket)
+                                <tr>
+                                    <td>{{ $ticket->ticket_id }}</td>
+                                    <td>{{ $ticket->booking_id }}</td>
+                                    <td>{{ $ticket->booking->user->name ?? 'N/A' }}</td>
+                                    <td>{{ $ticket->seat->seat_number ?? 'N/A' }}</td>
+                                    <td>{{ $ticket->compartment->compartment_name ?? 'N/A' }}</td>
+                                    <td>{{ $ticket->compartment->class_name ?? 'N/A' }}</td>
+                                    <td>{{ $ticket->travel_date ? $ticket->travel_date->format('Y-m-d') : 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            @if($ticket->ticket_status === 'active') bg-success
+                                            @elseif($ticket->ticket_status === 'cancelled') bg-danger
+                                            @elseif($ticket->ticket_status === 'used') bg-secondary
+                                            @else bg-warning
+                                            @endif">
+                                            {{ ucfirst($ticket->ticket_status) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-warning edit-ticket-btn" data-bs-toggle="modal"
+                                                data-bs-target="#ticketModal" data-ticket-id="{{ $ticket->ticket_id }}">Edit</button>
+                                            
+                                            <form action="{{ route('admin.tickets.destroy', $ticket->ticket_id) }}" method="POST" style="display:inline;"
+                                                onsubmit="return confirm('Are you sure you want to delete this ticket?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @empty
+            <div class="alert alert-info">No tickets found</div>
+        @endforelse
     </div>
 
     <!-- Modal for Add/Edit Ticket -->

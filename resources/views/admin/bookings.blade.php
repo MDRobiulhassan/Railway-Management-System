@@ -37,65 +37,68 @@
             </button>
         </div>
 
-        @forelse($bookings as $status => $statusBookings)
-            @if($statusBookings->isNotEmpty())
-                <div class="card mb-4">
-                    <div class="card-header 
-                        @if($status === 'confirmed') bg-success
-                        @elseif($status === 'cancelled') bg-danger
-                        @else bg-warning
-                        @endif">
-                        <h5 class="mb-0 text-white">
-                            {{ $statusLabels[$status] ?? ucfirst($status) }}
-                            <span class="badge bg-dark ms-2">
-                                {{ $statusBookings->count() }} bookings
-                            </span>
-                        </h5>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Booking ID</th>
-                                    <th>User</th>
-                                    <th>Train</th>
-                                    <th>Booking Date</th>
-                                    <th>Total Amount</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($statusBookings as $booking)
-                                    <tr>
-                                        <td>{{ $booking->booking_id }}</td>
-                                        <td>{{ $booking->user->name ?? 'N/A' }}</td>
-                                        <td>{{ $booking->train->train_name ?? 'N/A' }}</td>
-                                        <td>{{ $booking->booking_date ? $booking->booking_date->format('Y-m-d H:i') : 'N/A' }}</td>
-                                        <td>৳{{ number_format($booking->total_amount, 2) }}</td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <button class="btn btn-sm btn-warning edit-booking-btn" 
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#bookingModal" 
-                                                    data-booking-id="{{ $booking->booking_id }}">
-                                                    Edit
-                                                </button>
-                                                <form action="{{ route('admin.bookings.destroy', $booking->booking_id) }}" 
-                                                    method="POST" style="display:inline;"
-                                                    onsubmit="return confirm('Delete this booking?')">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+        @forelse($bookingsBySchedule as $scheduleKey => $scheduleData)
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        {{ $scheduleData['train_name'] }} - {{ $scheduleData['route'] }}
+                        <small class="ms-2">{{ $scheduleData['departure_time'] }}</small>
+                        <span class="badge bg-light text-dark ms-2">
+                            {{ $scheduleData['bookings']->count() }} bookings
+                        </span>
+                    </h5>
                 </div>
-            @endif
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>User</th>
+                                <th>Booking Date</th>
+                                <th>Status</th>
+                                <th>Total Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($scheduleData['bookings'] as $booking)
+                                <tr>
+                                    <td>{{ $booking->booking_id }}</td>
+                                    <td>{{ $booking->user->name ?? 'N/A' }}</td>
+                                    <td>{{ $booking->booking_date ? $booking->booking_date->format('Y-m-d H:i') : 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            @if($booking->status === 'confirmed') bg-success
+                                            @elseif($booking->status === 'cancelled') bg-danger
+                                            @else bg-warning text-dark
+                                            @endif">
+                                            {{ ucfirst($booking->status) }}
+                                        </span>
+                                    </td>
+                                    <td>৳{{ number_format($booking->total_amount, 2) }}</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-warning edit-booking-btn" 
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#bookingModal" 
+                                                data-booking-id="{{ $booking->booking_id }}">
+                                                Edit
+                                            </button>
+                                            <form action="{{ route('admin.bookings.destroy', $booking->booking_id) }}" 
+                                                method="POST" style="display:inline;"
+                                                onsubmit="return confirm('Delete this booking?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         @empty
             <div class="alert alert-info">No bookings found</div>
         @endforelse

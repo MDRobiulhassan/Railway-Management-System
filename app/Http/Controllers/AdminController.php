@@ -246,22 +246,31 @@ class AdminController extends Controller
     // Payments
     public function payments()
     {
-        $payments = Payment::with(['booking.user'])
+        $payments = Payment::with(['booking.user', 'booking.train', 'booking.tickets'])
             ->orderBy('payment_id', 'asc')
-            ->get()
-            ->groupBy('payment_status');
+            ->get();
+
+        // Group payments by schedule/journey
+        $paymentsBySchedule = $payments->groupBy(function ($payment) {
+            $train = $payment->booking->train;
+            $firstTicket = $payment->booking->tickets->first();
+            $travelDate = $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown';
+            return $train->train_name . '_' . $travelDate;
+        })->map(function ($schedulePayments) {
+            $firstPayment = $schedulePayments->first();
+            $train = $firstPayment->booking->train;
+            $firstTicket = $firstPayment->booking->tickets->first();
             
-        // Define the order of statuses we want to display
-        $statusOrder = ['completed', 'pending', 'failed'];
-        
-        // Reorder the payments array according to our defined status order
-        $orderedPayments = collect($statusOrder)
-            ->mapWithKeys(function ($status) use ($payments) {
-                return [$status => $payments->get($status, collect())];
-            });
+            return [
+                'train_name' => $train->train_name,
+                'route' => 'Route Info', // You can enhance this with actual route data
+                'departure_time' => $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
+                'payments' => $schedulePayments
+            ];
+        });
             
         return view('admin.payments', [
-            'payments' => $orderedPayments,
+            'paymentsBySchedule' => $paymentsBySchedule,
             'statusLabels' => [
                 'completed' => 'Completed Payments',
                 'pending' => 'Pending Payments',
@@ -378,20 +387,34 @@ class AdminController extends Controller
     // Food Orders
     public function foodOrders()
     {
-        $foodOrders = FoodOrder::with(['booking.user', 'foodItem'])
+        $foodOrders = FoodOrder::with(['booking.user', 'booking.train', 'booking.tickets', 'foodItem'])
             ->orderBy('order_id', 'asc')
-            ->get()
-            ->groupBy('booking_id');
+            ->get();
+
+        // Group food orders by schedule/journey
+        $foodOrdersBySchedule = $foodOrders->groupBy(function ($order) {
+            $train = $order->booking->train;
+            $firstTicket = $order->booking->tickets->first();
+            $travelDate = $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown';
+            return $train->train_name . '_' . $travelDate;
+        })->map(function ($scheduleOrders) {
+            $firstOrder = $scheduleOrders->first();
+            $train = $firstOrder->booking->train;
+            $firstTicket = $firstOrder->booking->tickets->first();
             
-        $bookings = Booking::with('user')
-            ->whereIn('booking_id', $foodOrders->keys())
-            ->get()
-            ->keyBy('booking_id');
+            return [
+                'train_name' => $train->train_name,
+                'route' => 'Route Info', // You can enhance this with actual route data
+                'departure_time' => $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
+                'orders' => $scheduleOrders
+            ];
+        });
             
+        $bookings = Booking::with('user')->get()->keyBy('booking_id');
         $foodItems = FoodItem::get(['food_id', 'name', 'price']);
             
         return view('admin.food_order', [
-            'foodOrders' => $foodOrders,
+            'foodOrdersBySchedule' => $foodOrdersBySchedule,
             'bookings' => $bookings,
             'foodItems' => $foodItems
         ]);
@@ -499,22 +522,31 @@ class AdminController extends Controller
     // Bookings
     public function bookings()
     {
-        $bookings = Booking::with(['user', 'train'])
+        $bookings = Booking::with(['user', 'train', 'tickets'])
             ->orderBy('booking_id', 'asc')
-            ->get()
-            ->groupBy('status');
+            ->get();
+
+        // Group bookings by schedule/journey
+        $bookingsBySchedule = $bookings->groupBy(function ($booking) {
+            $train = $booking->train;
+            $firstTicket = $booking->tickets->first();
+            $travelDate = $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown';
+            return $train->train_name . '_' . $travelDate;
+        })->map(function ($scheduleBookings) {
+            $firstBooking = $scheduleBookings->first();
+            $train = $firstBooking->train;
+            $firstTicket = $firstBooking->tickets->first();
             
-        // Define the order of statuses we want to display
-        $statusOrder = ['confirmed', 'pending', 'cancelled'];
-        
-        // Reorder the bookings array according to our defined status order
-        $orderedBookings = collect($statusOrder)
-            ->mapWithKeys(function ($status) use ($bookings) {
-                return [$status => $bookings->get($status, collect())];
-            });
+            return [
+                'train_name' => $train->train_name,
+                'route' => 'Route Info', // You can enhance this with actual route data
+                'departure_time' => $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
+                'bookings' => $scheduleBookings
+            ];
+        });
             
         return view('admin.bookings', [
-            'bookings' => $orderedBookings,
+            'bookingsBySchedule' => $bookingsBySchedule,
             'statusLabels' => [
                 'confirmed' => 'Confirmed Bookings',
                 'pending' => 'Pending Bookings',
@@ -723,7 +755,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'role' => 'required|in:admin,passenger',
+            'role' => 'required|in:admin,user',
             'contact_number' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'dob' => 'required|date',
@@ -753,7 +785,7 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->user_id . ',user_id',
-            'role' => 'required|in:admin,passenger',
+            'role' => 'required|in:admin,user',
             'contact_number' => 'nullable|string|max:255',
             'address' => 'nullable|string',
             'dob' => 'required|date',
@@ -917,10 +949,28 @@ class AdminController extends Controller
     // Tickets
     public function tickets()
     {
-        $tickets = Ticket::with(['booking.user', 'seat', 'compartment'])
+        $tickets = Ticket::with(['booking.user', 'booking.train', 'seat', 'compartment'])
             ->orderBy('ticket_id', 'asc')
             ->get();
-        return view('admin.tickets', compact('tickets'));
+
+        // Group tickets by schedule/journey
+        $ticketsBySchedule = $tickets->groupBy(function ($ticket) {
+            $train = $ticket->booking->train;
+            $travelDate = $ticket->travel_date ? $ticket->travel_date->format('Y-m-d') : 'Unknown';
+            return $train->train_name . '_' . $travelDate;
+        })->map(function ($scheduleTickets) {
+            $firstTicket = $scheduleTickets->first();
+            $train = $firstTicket->booking->train;
+            
+            return [
+                'train_name' => $train->train_name,
+                'route' => 'Route Info', // You can enhance this with actual route data
+                'departure_time' => $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
+                'tickets' => $scheduleTickets
+            ];
+        });
+
+        return view('admin.tickets', compact('ticketsBySchedule'));
     }
 
     public function getTicket($id)
