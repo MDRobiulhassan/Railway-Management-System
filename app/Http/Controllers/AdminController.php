@@ -443,7 +443,7 @@ class AdminController extends Controller
     {
         $seats = Seat::with(['compartment.train'])
             ->orderBy('seat_id', 'asc')
-            ->paginate(100);
+            ->get();
             
         $trains = Train::orderBy('train_id', 'asc')->get();
         $compartments = Compartment::orderBy('compartment_id', 'asc')->get(['compartment_id', 'compartment_name', 'class_name', 'train_id']);
