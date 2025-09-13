@@ -32,45 +32,77 @@
             </button>
         </form>
 
-        <div class="table-container">
-            <table class="table table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Order ID</th>
-                        <th>Booking ID</th>
-                        <th>Booking</th>
-                        <th>Food Item</th>
-                        <th>Quantity</th>
-                        <th>Total Price</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="ordersTableBody">
-                    @forelse($foodOrders as $o)
-                        <tr>
-                            <td>{{ $o->order_id }}</td>
-                            <td>#{{ $o->booking_id }}</td>
-                            <td>{{ $o->booking->user->name ?? 'N/A' }}</td>
-                            <td>{{ $o->foodItem->name ?? 'N/A' }}</td>
-                            <td>{{ $o->quantity }}</td>
-                            <td>৳{{ number_format(optional($o->foodItem)->price * $o->quantity, 2) }}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-warning edit-btn" data-bs-toggle="modal" data-bs-target="#editOrderModal" data-id="{{ $o->order_id }}">Edit</button>
-                                    <form action="{{ route('admin.food_order.destroy', $o->order_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this order?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="7" class="text-center">No food orders found</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @forelse($foodOrders as $bookingId => $orders)
+            @if(isset($bookings[$bookingId]) && $orders->isNotEmpty())
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            Booking #{{ $bookingId }}
+                            <small class="ms-2">{{ $bookings[$bookingId]->user->name ?? 'N/A' }}</small>
+                            <span class="badge bg-light text-dark ms-2">
+                                {{ $orders->count() }} items
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Food Item</th>
+                                    <th>Unit Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $bookingTotal = 0;
+                                @endphp
+                                @foreach($orders as $order)
+                                    @php
+                                        $itemTotal = optional($order->foodItem)->price * $order->quantity;
+                                        $bookingTotal += $itemTotal;
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $order->order_id }}</td>
+                                        <td>{{ $order->foodItem->name ?? 'N/A' }}</td>
+                                        <td>৳{{ number_format(optional($order->foodItem)->price, 2) }}</td>
+                                        <td>{{ $order->quantity }}</td>
+                                        <td>৳{{ number_format($itemTotal, 2) }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-warning edit-btn" 
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editOrderModal" 
+                                                    data-id="{{ $order->order_id }}">
+                                                    Edit
+                                                </button>
+                                                <form action="{{ route('admin.food_order.destroy', $order->order_id) }}" 
+                                                    method="POST" style="display:inline;"
+                                                    onsubmit="return confirm('Delete this order?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                <tr class="table-secondary">
+                                    <td colspan="4" class="text-end fw-bold">Booking Total:</td>
+                                    <td class="fw-bold">৳{{ number_format($bookingTotal, 2) }}</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+        @empty
+            <div class="alert alert-info">No food orders found</div>
+        @endforelse
     </div>
 
     <!-- Add Order Modal -->

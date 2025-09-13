@@ -97,9 +97,9 @@ class AdminController extends Controller
     // Schedules
     public function schedules()
     {
-        $schedules = Schedule::with(['train', 'sourceStation', 'destinationStation'])->orderByDesc('created_at')->get();
-        $trains = Train::orderBy('train_name')->get(['train_id', 'train_name']);
-        $stations = Station::orderBy('name')->get(['station_id', 'name']);
+        $schedules = Schedule::with(['train', 'sourceStation', 'destinationStation'])->orderBy('schedule_id', 'asc')->get();
+        $trains = Train::orderBy('train_id', 'asc')->get(['train_id', 'train_name']);
+        $stations = Station::orderBy('station_id', 'asc')->get(['station_id', 'name']);
         return view('admin.schedule', compact('schedules', 'trains', 'stations'));
     }
 
@@ -246,8 +246,28 @@ class AdminController extends Controller
     // Payments
     public function payments()
     {
-        $payments = Payment::with(['booking.user'])->orderByDesc('created_at')->get();
-        return view('admin.payments', compact('payments'));
+        $payments = Payment::with(['booking.user'])
+            ->orderBy('payment_id', 'asc')
+            ->get()
+            ->groupBy('payment_status');
+            
+        // Define the order of statuses we want to display
+        $statusOrder = ['completed', 'pending', 'failed'];
+        
+        // Reorder the payments array according to our defined status order
+        $orderedPayments = collect($statusOrder)
+            ->mapWithKeys(function ($status) use ($payments) {
+                return [$status => $payments->get($status, collect())];
+            });
+            
+        return view('admin.payments', [
+            'payments' => $orderedPayments,
+            'statusLabels' => [
+                'completed' => 'Completed Payments',
+                'pending' => 'Pending Payments',
+                'failed' => 'Failed Payments'
+            ]
+        ]);
     }
 
     public function getPayment($id)
@@ -303,7 +323,7 @@ class AdminController extends Controller
     // NID
     public function nid()
     {
-        $nids = NidDb::orderByDesc('created_at')->get();
+        $nids = NidDb::orderBy('user_id', 'asc')->get();
         return view('admin.nid', compact('nids'));
     }
 
@@ -358,10 +378,23 @@ class AdminController extends Controller
     // Food Orders
     public function foodOrders()
     {
-        $foodOrders = FoodOrder::with(['booking.user', 'foodItem'])->orderByDesc('created_at')->get();
-        $bookings = Booking::with('user')->get(['booking_id', 'user_id']);
+        $foodOrders = FoodOrder::with(['booking.user', 'foodItem'])
+            ->orderBy('order_id', 'asc')
+            ->get()
+            ->groupBy('booking_id');
+            
+        $bookings = Booking::with('user')
+            ->whereIn('booking_id', $foodOrders->keys())
+            ->get()
+            ->keyBy('booking_id');
+            
         $foodItems = FoodItem::get(['food_id', 'name', 'price']);
-        return view('admin.food_order', compact('foodOrders', 'bookings', 'foodItems'));
+            
+        return view('admin.food_order', [
+            'foodOrders' => $foodOrders,
+            'bookings' => $bookings,
+            'foodItems' => $foodItems
+        ]);
     }
 
     public function getFoodOrder($id)
@@ -408,9 +441,13 @@ class AdminController extends Controller
     // Seats
     public function seats()
     {
-        $seats = Seat::with(['train', 'compartment'])->orderByDesc('created_at')->get();
-        $trains = Train::orderBy('train_name')->get(['train_id', 'train_name']);
-        $compartments = Compartment::orderBy('compartment_name')->get(['compartment_id', 'compartment_name', 'class_name', 'train_id']);
+        $seats = Seat::with(['compartment.train'])
+            ->orderBy('seat_id', 'asc')
+            ->get();
+            
+        $trains = Train::orderBy('train_id', 'asc')->get();
+        $compartments = Compartment::orderBy('compartment_id', 'asc')->get(['compartment_id', 'compartment_name', 'class_name', 'train_id']);
+        
         return view('admin.seats', compact('seats', 'trains', 'compartments'));
     }
 
@@ -461,8 +498,28 @@ class AdminController extends Controller
     // Bookings
     public function bookings()
     {
-        $bookings = Booking::with(['user', 'train'])->orderByDesc('created_at')->get();
-        return view('admin.bookings', compact('bookings'));
+        $bookings = Booking::with(['user', 'train'])
+            ->orderBy('booking_id', 'asc')
+            ->get()
+            ->groupBy('status');
+            
+        // Define the order of statuses we want to display
+        $statusOrder = ['confirmed', 'pending', 'cancelled'];
+        
+        // Reorder the bookings array according to our defined status order
+        $orderedBookings = collect($statusOrder)
+            ->mapWithKeys(function ($status) use ($bookings) {
+                return [$status => $bookings->get($status, collect())];
+            });
+            
+        return view('admin.bookings', [
+            'bookings' => $orderedBookings,
+            'statusLabels' => [
+                'confirmed' => 'Confirmed Bookings',
+                'pending' => 'Pending Bookings',
+                'cancelled' => 'Cancelled Bookings'
+            ]
+        ]);
     }
 
     public function getBooking($id)
@@ -517,8 +574,14 @@ class AdminController extends Controller
     // Compartments
     public function compartments()
     {
-        $compartments = Compartment::with('train')->orderByDesc('created_at')->get();
-        $trains = Train::orderBy('train_name')->get(['train_id', 'train_name']);
+        $compartments = Compartment::with('train')
+            ->orderBy('compartment_id', 'asc')
+            ->get();
+            
+        $trains = Train::with(['compartments' => function($query) {
+            $query->orderBy('compartment_id', 'asc');
+        }])->orderBy('train_id', 'asc')->get();
+        
         return view('admin.compartments', compact('compartments', 'trains'));
     }
 
@@ -561,8 +624,17 @@ class AdminController extends Controller
     // Food Items
     public function foodItems()
     {
-        $foodItems = FoodItem::orderByDesc('created_at')->get();
-        return view('admin.food_items', compact('foodItems'));
+        $foodItems = FoodItem::orderBy('food_id', 'asc')
+            ->get()
+            ->groupBy('category');
+            
+        // Get all unique categories in the order they first appear
+        $categories = $foodItems->keys()->filter()->values();
+        
+        return view('admin.food_items', [
+            'foodItems' => $foodItems,
+            'categories' => $categories
+        ]);
     }
 
     public function getFoodItem($id)
@@ -625,7 +697,7 @@ class AdminController extends Controller
     // Users
     public function users()
     {
-        $users = User::orderByDesc('created_at')->get();
+        $users = User::orderBy('user_id', 'asc')->get();
         return view('admin.users', compact('users'));
     }
 
@@ -718,7 +790,7 @@ class AdminController extends Controller
     // Trains
     public function trains()
     {
-        $trains = Train::orderByDesc('created_at')->get();
+        $trains = Train::orderBy('train_id', 'asc')->get();
         return view('admin.trains', compact('trains'));
     }
 
@@ -803,7 +875,7 @@ class AdminController extends Controller
     // Stations
     public function stations()
     {
-        $stations = Station::orderByDesc('created_at')->get();
+        $stations = Station::orderBy('station_id', 'asc')->get();
         return view('admin.stations', compact('stations'));
     }
 
@@ -844,7 +916,9 @@ class AdminController extends Controller
     // Tickets
     public function tickets()
     {
-        $tickets = Ticket::with(['booking.user', 'seat', 'compartment'])->orderByDesc('created_at')->get();
+        $tickets = Ticket::with(['booking.user', 'seat', 'compartment'])
+            ->orderBy('ticket_id', 'asc')
+            ->get();
         return view('admin.tickets', compact('tickets'));
     }
 
@@ -901,8 +975,19 @@ class AdminController extends Controller
     // Ticket Prices
     public function ticketPrices()
     {
-        $ticketPrices = TicketPrice::with(['train', 'compartment'])->orderByDesc('created_at')->get();
-        return view('admin.ticket_prices', compact('ticketPrices'));
+        $ticketPrices = TicketPrice::with(['train', 'compartment'])
+            ->orderBy('price_id', 'asc')
+            ->get()
+            ->groupBy('train_id');
+            
+        $trains = Train::whereIn('train_id', $ticketPrices->keys())
+            ->get()
+            ->keyBy('train_id');
+            
+        return view('admin.ticket_prices', [
+            'ticketPrices' => $ticketPrices,
+            'trains' => $trains
+        ]);
     }
 
     public function getTicketPrice($id)

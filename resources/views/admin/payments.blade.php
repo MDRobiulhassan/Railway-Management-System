@@ -37,51 +37,72 @@
             </button>
         </div>
 
-        <div class="table-container">
-            <table class="table table-striped">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Payment ID</th>
-                        <th>Booking</th>
-                        <th>Amount</th>
-                        <th>Method</th>
-                        <th>Status</th>
-                        <th>Transaction ID</th>
-                        <th>Paid At</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="paymentTableBody">
-                    @forelse($payments as $p)
-                        <tr>
-                            <td>{{ $p->payment_id }}</td>
-                            <td>Booking #{{ $p->booking_id }} - {{ $p->booking->user->name ?? 'N/A' }}</td>
-                            <td>৳{{ number_format($p->amount, 2) }}</td>
-                            <td>{{ $p->payment_method }}</td>
-                            <td><span class="badge {{ $p->payment_status === 'completed' ? 'bg-success' : ($p->payment_status === 'failed' ? 'bg-danger' : 'bg-warning') }}">{{ ucfirst($p->payment_status) }}</span></td>
-                            <td>{{ $p->transaction_id ?? '-' }}</td>
-                            <td>{{ $p->paid_at ? $p->paid_at->format('Y-m-d H:i') : '-' }}</td>
-                            <td>{{ $p->created_at ? $p->created_at->format('Y-m-d H:i') : '-' }}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-warning edit-btn" data-bs-toggle="modal" data-bs-target="#editPaymentModal" data-id="{{ $p->payment_id }}">Edit</button>
-                                    <form action="{{ route('admin.payments.destroy', $p->payment_id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this payment?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="text-center">No payments found</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @forelse($payments as $status => $statusPayments)
+            @if($statusPayments->isNotEmpty())
+                <div class="card mb-4">
+                    <div class="card-header 
+                        @if($status === 'completed') bg-success
+                        @elseif($status === 'failed') bg-danger
+                        @else bg-warning
+                        @endif">
+                        <h5 class="mb-0 text-white">
+                            {{ $statusLabels[$status] ?? ucfirst($status) }}
+                            <span class="badge bg-dark ms-2">
+                                {{ $statusPayments->count() }} payments
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Payment ID</th>
+                                    <th>Booking</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Transaction ID</th>
+                                    <th>Paid At</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($statusPayments as $payment)
+                                    <tr>
+                                        <td>{{ $payment->payment_id }}</td>
+                                        <td>Booking #{{ $payment->booking_id }} - {{ $payment->booking->user->name ?? 'N/A' }}</td>
+                                        <td>৳{{ number_format($payment->amount, 2) }}</td>
+                                        <td>{{ $payment->payment_method }}</td>
+                                        <td>{{ $payment->transaction_id ?? '-' }}</td>
+                                        <td>{{ $payment->paid_at ? $payment->paid_at->format('Y-m-d H:i') : '-' }}</td>
+                                        <td>{{ $payment->created_at ? $payment->created_at->format('Y-m-d H:i') : '-' }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-warning edit-btn" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editPaymentModal" 
+                                                    data-id="{{ $payment->payment_id }}">
+                                                    Edit
+                                                </button>
+                                                <form action="{{ route('admin.payments.destroy', $payment->payment_id) }}" 
+                                                    method="POST" style="display:inline;" 
+                                                    onsubmit="return confirm('Delete this payment?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+        @empty
+            <div class="alert alert-info">No payments found</div>
+        @endforelse
     </div>
 
     <!-- Add Payment Modal -->

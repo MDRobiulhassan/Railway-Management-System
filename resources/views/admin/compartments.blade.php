@@ -24,45 +24,67 @@
             </button>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Compartment ID</th>
-                        <th>Train Name</th>
-                        <th>Compartment Name</th>
-                        <th>Class Name</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="compartmentTableBody">
-                    @forelse($compartments as $compartment)
-                        <tr>
-                            <td>{{ $compartment->compartment_id }}</td>
-                            <td>{{ $compartment->train->train_name ?? 'N/A' }}</td>
-                            <td>{{ $compartment->compartment_name }}</td>
-                            <td>{{ $compartment->class_name }}</td>
-                            <td>
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-warning edit-compartment-btn" data-bs-toggle="modal"
-                                        data-bs-target="#editCompartmentModal" data-id="{{ $compartment->compartment_id }}">Edit</button>
-                                    <form action="{{ route('admin.compartments.destroy', $compartment->compartment_id) }}" method="POST" style="display:inline;"
-                                        onsubmit="return confirm('Delete this compartment?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center">No compartments found</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+        @php
+            $groupedCompartments = $compartments->groupBy('train_id');
+        @endphp
+
+        @forelse($groupedCompartments as $trainId => $trainCompartments)
+            @php
+                $train = $trainCompartments->first()->train;
+            @endphp
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        {{ $train->train_name ?? 'N/A' }}
+                        <span class="badge bg-primary ms-2">{{ $trainCompartments->count() }} compartments</span>
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Compartment ID</th>
+                                <th>Compartment Name</th>
+                                <th>Class Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($trainCompartments as $compartment)
+                                <tr>
+                                    <td>{{ $compartment->compartment_id }}</td>
+                                    <td>{{ $compartment->compartment_name }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            @if($compartment->class_name === 'AC') bg-success
+                                            @elseif($compartment->class_name === 'Snigdha') bg-warning
+                                            @elseif($compartment->class_name === 'Shovan') bg-info
+                                            @else bg-secondary
+                                            @endif">
+                                            {{ $compartment->class_name }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-warning edit-compartment-btn" data-bs-toggle="modal"
+                                                data-bs-target="#editCompartmentModal" data-id="{{ $compartment->compartment_id }}">Edit</button>
+                                            <form action="{{ route('admin.compartments.destroy', $compartment->compartment_id) }}" method="POST" style="display:inline;"
+                                                onsubmit="return confirm('Delete this compartment?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @empty
+            <div class="alert alert-info">No compartments found</div>
+        @endforelse
     </div>
 
     <!-- Add Compartment Modal -->
