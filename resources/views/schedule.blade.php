@@ -53,7 +53,7 @@
                                 @elseif(!$hasAvailableSeats)
                                     <span class="badge bg-danger">Fully Booked</span>
                                 @else
-                                    <form action="{{ route('booking.start') }}" method="POST" style="display: inline;">
+                                <form action="{{ route('booking.start') }}" method="POST" class="d-inline">
                                         @csrf
                                         <input type="hidden" name="schedule_id" value="{{ $schedule->schedule_id }}">
                                         <button type="submit" class="btn book-btn">Book Now</button>

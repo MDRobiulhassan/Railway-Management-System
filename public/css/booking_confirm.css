@@ -1,0 +1,50 @@
+body {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
+
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+}
+
+.confirm-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    color: #007bff;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.info-label {
+    color: #555;
+}
+
+.dashboard-link {
+    display: inline-block;
+    margin-top: 30px;
+    font-weight: bold;
+}
+
+/* Replacements for inline styles used in the blade */
+.mt-30 {
+    margin-top: 30px;
+}
+
+.list-disc-pl-20 {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+

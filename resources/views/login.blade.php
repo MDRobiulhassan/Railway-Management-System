@@ -31,10 +31,6 @@
 
         <form method="POST" action="{{ route('login.submit') }}">
             @csrf
-            <input type="email" name="email" placeholder="Email" required
-                value="{{ old('email') }}"
-                class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" />
-
             <input type="text" name="phone" placeholder="Phone Number" required
                 value="{{ old('phone') }}"
                 class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" />

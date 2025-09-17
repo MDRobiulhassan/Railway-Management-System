@@ -16,7 +16,7 @@
 
     <div class="container mt-5">
         <h2 class="mb-4 text-center fw-bold">Book Your Tickets</h2>
-        <div class="search-card mx-auto" style="max-width: 900px;">
+        <div class="search-card mx-auto maxw-900">
             <form action="{{ route('search.result') }}" method="GET">
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">

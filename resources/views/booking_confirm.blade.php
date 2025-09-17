@@ -5,47 +5,7 @@
     <meta charset="UTF-8" />
     <title>Booking Confirm</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <style>
-        body {
-            background-color: #f9f9f9;
-            font-weight: bold;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-        }
-
-        .confirm-card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .section-title {
-            color: #007bff;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .info-label {
-            color: #555;
-        }
-
-        .dashboard-link {
-            display: inline-block;
-            margin-top: 30px;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/booking_confirm.css') }}" />
 </head>
 
 <body>
@@ -88,9 +48,9 @@
 
             <!-- Food Info -->
             @if(!empty($bookingData['food_orders']))
-                <div style="margin-top: 30px;">
+                <div class="mt-30">
                     <h5 class="section-title">Food Order</h5>
-                    <ul style="list-style-type: disc; padding-left: 20px;">
+                    <ul class="list-disc-pl-20">
                         @foreach($bookingData['food_orders'] as $foodOrder)
                             @php
                                 $foodItem = App\Models\FoodItem::find($foodOrder['food_id']);
@@ -104,7 +64,7 @@
             @endif
 
             <!-- Payment & Total -->
-            <div style="margin-top: 30px;">
+            <div class="mt-30">
                 <h5 class="section-title">Payment</h5>
                 @php
                     $seatPrice = 350; // Default price

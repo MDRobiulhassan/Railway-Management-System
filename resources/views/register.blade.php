@@ -9,7 +9,6 @@
     <script>
         function validateForm() {
             const name = document.querySelector('input[name="name"]').value;
-            const email = document.querySelector('input[name="email"]').value;
             const phone = document.querySelector('input[name="phone"]').value;
             const nid = document.querySelector('input[name="nid"]').value;
             const password = document.querySelector('input[name="password"]').value;
@@ -18,7 +17,6 @@
             let errors = [];
             
             if (!name.trim()) errors.push('Name is required');
-            if (!email.includes('@')) errors.push('Valid email is required');
             if (!/^[0-9]{11}$|^[0-9]{14}$/.test(phone)) errors.push('Phone must be 11 or 14 digits');
             if (!/^[0-9]{13}$|^[0-9]{17}$/.test(nid)) errors.push('NID must be 13 or 17 digits');
             if (password.length < 8) errors.push('Password must be at least 8 characters');
@@ -81,8 +79,7 @@
             <input type="text" name="name" placeholder="Full Name" required value="{{ old('name') }}"
                 class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" />
 
-            <input type="email" name="email" placeholder="Email" required value="{{ old('email') }}"
-                class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" />
+            
 
             <input type="text" name="phone" placeholder="Phone Number" required value="{{ old('phone') }}"
                 class="w-full p-3 mb-3 rounded border border-gray-200 bg-gray-100 focus:ring-2 focus:ring-green-200 focus:border-green-400 outline-none" 
