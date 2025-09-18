@@ -13,6 +13,14 @@
     <x-navbar />
     <div class="container mt-4">
         <h3 class="mb-4 text-center">Upcoming Train Schedule</h3>
+        
+        <!-- Display error messages -->
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
 
         <div class="table-responsive">
             <table class="table table-bordered table-hover custom-table mx-auto">
@@ -78,6 +86,13 @@
         @endif
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Show alert if there's an error message
+        @if(session('error'))
+            alert('{{ session('error') }}');
+        @endif
+    </script>
 </body>
 
 </html>
