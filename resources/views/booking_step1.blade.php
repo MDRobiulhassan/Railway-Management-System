@@ -23,8 +23,8 @@
         </div>
 
         <!-- Progress bar -->
-        <div class="progress mb-4" style="height: 20px;">
-            <div class="progress-bar bg-success" role="progressbar" style="width: 33%">Step 1</div>
+        <div class="progress mb-4 progress-20">
+            <div class="progress-bar bg-success w-33" role="progressbar">Step 1</div>
         </div>
 
         <form id="seatForm" method="POST" action="{{ route('booking.step2') }}">
@@ -38,7 +38,7 @@
             </div>
 
             <!-- Compartment selection -->
-            <div class="mb-4" id="compartment-section" style="display: none;">
+            <div class="mb-4 hidden-init" id="compartment-section">
                 <label for="compartment" class="form-label fw-bold">Select Compartment:</label>
                 <select id="compartment" name="compartment_id" class="form-select w-50 mx-auto fw-bold" required>
                     <option selected disabled>Choose compartment</option>
@@ -49,7 +49,7 @@
             <div id="selected-seats-inputs"></div>
 
             <!-- Seat layout & legend -->
-            <div id="seat-section" style="display: none;">
+            <div id="seat-section" class="hidden-init">
                 <div class="row justify-content-center align-items-start">
                     <div class="col-md-7">
                         <div class="card p-4 mb-4">
@@ -74,8 +74,8 @@
                 @endif -->
                 <h4>Total Price: <span id="total-price">৳ 0</span></h4>
 
-                <button type="submit" class="btn btn-primary btn-sm mt-4 px-4 py-2 fw-bold mb-2"
-                    id="next-btn" style="min-width: 50px;" disabled>Next</button>
+                <button type="submit" class="btn btn-primary btn-sm mt-4 px-4 py-2 fw-bold mb-2 minw-50"
+                    id="next-btn" disabled>Next</button>
             </div>
         </form>
     </div>

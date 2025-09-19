@@ -15,8 +15,8 @@
             
             <h3 class="text-center mb-3">Step 3: Payment Method</h3>
             <!-- Progress bar -->
-            <div class="progress mb-4" style="height: 20px;">
-                <div class="progress-bar bg-success" role="progressbar" style="width: 100%">Step 3</div>
+            <div class="progress mb-4 progress-20">
+                <div class="progress-bar bg-success w-100" role="progressbar">Step 3</div>
             </div>
 
             <div class="payment-card" onclick="selectPayment(this)">

@@ -21,7 +21,6 @@ class AuthController extends Controller
         // Validate the registration data
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
             'phone' => ['required', 'string', 'regex:/^[0-9]{11}$|^[0-9]{14}$/'],
             'nid' => ['required', 'string', 'regex:/^[0-9]{13}$|^[0-9]{17}$/'],
             'dob' => 'required|date',
@@ -49,7 +48,8 @@ class AuthController extends Controller
         // Create the user
         User::create([
             'name' => $request->name,
-            'email' => $request->email,
+            // Persist a unique placeholder to satisfy non-null + unique constraint
+            'email' => $request->phone . '@noemail.local',
             'contact_number' => $request->phone,
             'nid_number' => $request->nid,
             'dob' => $request->dob,
@@ -68,15 +68,12 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
             'phone' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        // Try to find user by email and phone
-        $user = User::where('email', $request->email)
-                   ->where('contact_number', $request->phone)
-                   ->first();
+        // Phone-only authentication
+        $user = User::where('contact_number', $request->phone)->first();
 
         if ($user && Hash::check($request->password, $user->password)) {
             Auth::login($user);
@@ -91,8 +88,8 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'login_failed' => 'Invalid email, phone number, or password. Please try again.'
-        ])->withInput($request->only('email', 'phone'));
+            'login_failed' => 'Invalid phone number or password. Please try again.'
+        ])->withInput($request->only('phone'));
     }
 
     public function logout(Request $request)

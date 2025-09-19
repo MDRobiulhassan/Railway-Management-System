@@ -16,8 +16,8 @@
 
             <h2 class="text-center fw-bold mb-3">Step 2: Food Order (Optional)</h2>
 
-            <div class="progress mb-4" style="height: 20px;">
-                <div class="progress-bar bg-success" role="progressbar" style="width: 66%">Step 2</div>
+            <div class="progress mb-4 progress-20">
+                <div class="progress-bar bg-success w-66" role="progressbar">Step 2</div>
             </div>
 
             @if($foodItems && $foodItems->count() > 0)

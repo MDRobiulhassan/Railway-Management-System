@@ -110,3 +110,18 @@ body {
     background-color: #6a0dad;
     color: white;
 }
+
+/* Utilities for search and tables */
+.maxw-900 {
+    max-width: 900px;
+}
+
+.d-inline-form form.d-inline,
+form.d-inline {
+    display: inline;
+}
+
+.btn-logout-reset {
+    border: none;
+    background: none;
+}

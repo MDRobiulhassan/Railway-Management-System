@@ -34,3 +34,8 @@ body {
     padding: 10px;
     font-size: 1.1rem;
 }
+
+/* Utilities for step 3 */
+.progress-20 {
+    height: 20px;
+}

@@ -72,3 +72,20 @@ body {
 .legend-box.taken {
     background-color: #dc3545;
 }
+
+/* Utilities for step 1 */
+.progress-20 {
+    height: 20px;
+}
+
+.w-33 {
+    width: 33%;
+}
+
+.hidden-init {
+    display: none;
+}
+
+.minw-50 {
+    min-width: 50px;
+}

@@ -15,7 +15,7 @@
             <li>
                 <form method="POST" action="{{ route('logout') }}" class="d-inline">
                     @csrf
-                    <button type="submit" class="dropdown-item fw-bold text-danger" style="border: none; background: none;">Logout</button>
+                    <button type="submit" class="dropdown-item fw-bold text-danger btn-logout-reset">Logout</button>
                 </form>
             </li>
         </ul>
