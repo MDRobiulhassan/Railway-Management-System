@@ -17,6 +17,9 @@
             <strong>{{ $schedule->train->train_name }}</strong> - 
             {{ $schedule->sourceStation->name }} to {{ $schedule->destinationStation->name }} - 
             {{ $schedule->departure_time->format('M d, Y H:i') }}
+            @if(Auth::check() && $existingTickets > 0)
+                <br><small class="text-dark">You already have {{ $existingTickets }} ticket(s) for this journey. You can book {{ 5 - $existingTickets }} more.</small>
+            @endif
         </div>
 
         <!-- Progress bar -->
@@ -64,6 +67,11 @@
 
                 <!-- Selected seats & price -->
                 <h4 class="mt-4">Selected Seat(s): <span id="selected-seats">None</span></h4>
+                <!-- @if(Auth::check() && $existingTickets > 0)
+                    <p class="text-muted small">You can select {{ 5 - $existingTickets }} more seat(s)</p>
+                @else
+                    <p class="text-muted small">Maximum 5 seats per booking</p>
+                @endif -->
                 <h4>Total Price: <span id="total-price">৳ 0</span></h4>
 
                 <button type="submit" class="btn btn-primary btn-sm mt-4 px-4 py-2 fw-bold mb-2 minw-50"
@@ -76,6 +84,8 @@
         const seatPrice = 350;
         const selectedSeats = new Set();
         const takenSeats = @json($bookedSeats);
+        const existingTickets = @json($existingTickets ?? 0);
+        const maxSeatsAllowed = 5 - existingTickets;
         // Normalize data coming from Laravel collections
         const compartments = @json($compartments);
         const seats = @json($seats);
@@ -214,6 +224,14 @@
                         this.classList.remove('selected');
                         selectedSeats.delete(seatId);
                     } else {
+                        // Check if user is trying to select more seats than allowed
+                        if (selectedSeats.size >= maxSeatsAllowed) {
+                            const message = existingTickets > 0 
+                                ? `You can only select ${maxSeatsAllowed} more seat(s). You already have ${existingTickets} ticket(s) for this journey.`
+                                : 'You can only select maximum 5 seats per booking.';
+                            alert(message);
+                            return;
+                        }
                         this.classList.add('selected');
                         selectedSeats.add(seatId);
                     }

@@ -16,6 +16,21 @@
     <div class="container mt-4">
         <h1>Train Ticket Price Management</h1>
 
+        <!-- Success & error messages -->
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
         <div class="mb-3 d-flex justify-content-between align-items-center">
             <input type="text" id="searchInput" class="form-control w-25" placeholder="Search prices...">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#priceModal">
@@ -23,37 +38,72 @@
             </button>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Price ID</th>
-                        <th>Train Name</th>
-                        <th>Compartment</th>
-                        <th>AC Price</th>
-                        <th>Shovan Price</th>
-                        <th>Snigdha Price</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="priceTableBody">
-                    <tr>
-                        <td>1</td>
-                        <td>Express 101</td>
-                        <td>All Compartments</td>
-                        <td>50.00BDT</td>
-                        <td>80.00BDT</td>
-                        <td>80.00BDT</td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-price-btn">Edit</button>
-                                <button class="btn btn-sm btn-danger delete-price-btn">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        @forelse($trains as $trainId => $train)
+            @if(isset($ticketPrices[$trainId]) && $ticketPrices[$trainId]->isNotEmpty())
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            {{ $train->train_name ?? 'N/A' }}
+                            <span class="badge bg-light text-dark ms-2">
+                                {{ $ticketPrices[$trainId]->count() }} price entries
+                            </span>
+                        </h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Price ID</th>
+                                    <th>Compartment</th>
+                                    <th>Class</th>
+                                    <th>Base Price</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($ticketPrices[$trainId] as $price)
+                                    <tr>
+                                        <td>{{ $price->price_id }}</td>
+                                        <td>{{ $price->compartment->compartment_name ?? 'N/A' }}</td>
+                                        <td>
+                                            @php($className = optional($price->compartment)->class_name)
+                                            <span class="badge 
+                                                @if($className === 'AC') bg-success
+                                                @elseif($className === 'Snigdha') bg-warning
+                                                @elseif($className === 'Shovan') bg-info
+                                                @else bg-secondary
+                                                @endif">
+                                                {{ $className ?? 'N/A' }}
+                                            </span>
+                                        </td>
+                                        <td>৳{{ number_format($price->base_price, 2) }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-warning edit-price-btn" 
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#priceModal" 
+                                                    data-price-id="{{ $price->price_id }}">
+                                                    Edit
+                                                </button>
+                                                <form action="{{ route('admin.ticket_prices.destroy', $price->price_id) }}" 
+                                                    method="POST" style="display:inline;"
+                                                    onsubmit="return confirm('Are you sure you want to delete this price?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+        @empty
+            <div class="alert alert-info">No ticket prices found</div>
+        @endforelse
     </div>
 
     <!-- Modal for Add/Edit Price -->
@@ -65,39 +115,28 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="priceForm">
+                    <form id="priceForm" method="POST">
+                        @csrf
+                        <div id="method-field"></div>
                         <div class="mb-3">
-                            <label>Train Name</label>
-                            <select class="form-select" id="train_name" required>
-                                <option value="" disabled selected>Select Train</option>
-                                <option value="Express 101">Express 101</option>
-                                <option value="Local 202">Local 202</option>
-                                <option value="Fast Track 303">Fast Track 303</option>
-                                <!-- Add more trains as needed -->
+                            <label>Train</label>
+                            <select class="form-select" id="train_id" name="train_id" required>
+                                <option value="">Select Train...</option>
                             </select>
                         </div>
-                        <!-- <div class="mb-3">
+                        <div class="mb-3">
                             <label>Compartment</label>
-                            <select class="form-select" id="compartment" required>
-                                <option value="All">All Compartments</option>
-                                <option value="AC">AC</option>
-                                <option value="Shovan">Shovan</option>
-                                <option value="Snigdha">Snigdha</option>
+                            <select class="form-select" id="compartment_id" name="compartment_id" required>
+                                <option value="">Select Compartment...</option>
                             </select>
-                        </div> -->
-                        <div class="mb-3">
-                            <label>AC Price</label>
-                            <input type="number" class="form-control" id="ac_price" min="0" step="0.01"
-                                placeholder="0.00" required>
                         </div>
                         <div class="mb-3">
-                            <label>Shovan Price</label>
-                            <input type="number" class="form-control" id="shovan_price" min="0" step="0.01"
-                                placeholder="0.00" required>
+                            <label>Class</label>
+                            <input type="text" class="form-control" id="class_name" readonly>
                         </div>
                         <div class="mb-3">
-                            <label>Snigdha Price</label>
-                            <input type="number" class="form-control" id="snigdha_price" min="0" step="0.01"
+                            <label>Base Price (৳)</label>
+                            <input type="number" class="form-control" id="base_price" name="base_price" min="0" step="0.01"
                                 placeholder="0.00" required>
                         </div>
                         <div class="text-end">
@@ -112,79 +151,126 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const priceTableBody = document.getElementById('priceTableBody');
         const priceForm = document.getElementById('priceForm');
         const modalTitle = document.getElementById('modalTitle');
-        let currentEditRow = null;
+        const methodField = document.getElementById('method-field');
 
-        // Search
-        document.getElementById('searchInput').addEventListener('keyup', () => {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            priceTableBody.querySelectorAll('tr').forEach(row => {
-                row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+        const trainSelect = document.getElementById('train_id');
+        const compartmentSelect = document.getElementById('compartment_id');
+        const classInput = document.getElementById('class_name');
+
+        let currentEditId = null;
+        let trains = [];
+        let compartments = [];
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure default action is set for Add
+            priceForm.action = '/adminpanel/ticket_prices';
+            loadTrains();
+            loadCompartments();
+        });
+
+        // Load trains
+        async function loadTrains() {
+            try {
+                const response = await fetch('/adminpanel/api/trains');
+                trains = await response.json();
+                
+                trainSelect.innerHTML = '<option value="">Select Train...</option>';
+                trains.forEach(train => {
+                    const option = document.createElement('option');
+                    option.value = train.train_id;
+                    option.textContent = train.train_name;
+                    trainSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading trains:', error);
+            }
+        }
+
+        // Load compartments
+        async function loadCompartments() {
+            try {
+                const response = await fetch('/adminpanel/api/compartments');
+                compartments = await response.json();
+                
+                compartmentSelect.innerHTML = '<option value="">Select Compartment...</option>';
+                compartments.forEach(compartment => {
+                    const option = document.createElement('option');
+                    option.value = compartment.compartment_id;
+                    option.textContent = `${compartment.compartment_name} (${compartment.class_name})`;
+                    option.dataset.className = compartment.class_name;
+                    compartmentSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading compartments:', error);
+            }
+        }
+
+        // Auto-set class based on compartment
+        compartmentSelect.addEventListener('change', () => {
+            const selectedOption = compartmentSelect.selectedOptions[0];
+            if (selectedOption && selectedOption.dataset.className) {
+                classInput.value = selectedOption.dataset.className;
+            } else {
+                classInput.value = '';
+            }
+        });
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function () {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('tbody tr');
+
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
         });
 
-        // Delete
-        priceTableBody.addEventListener('click', e => {
-            if (e.target.classList.contains('delete-price-btn')) {
-                if (confirm('Delete this price?')) {
-                    e.target.closest('tr').remove();
-                }
-            }
-        });
-
-        // Edit
-        priceTableBody.addEventListener('click', e => {
-            if (e.target.classList.contains('edit-price-btn')) {
-                currentEditRow = e.target.closest('tr');
+        // Edit price functionality
+        document.querySelectorAll('.edit-price-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                currentEditId = this.getAttribute('data-price-id');
                 modalTitle.textContent = 'Edit Ticket Price';
-                document.getElementById('train_name').value = currentEditRow.cells[1].textContent;
-                document.getElementById('compartment').value = currentEditRow.cells[2].textContent;
-                document.getElementById('ac_price').value = parseFloat(currentEditRow.cells[3].textContent.replace('BDT', ''));
-                document.getElementById('shovan_price').value = parseFloat(currentEditRow.cells[4].textContent.replace('BDT', ''));
-                document.getElementById('snigdha_price').value = parseFloat(currentEditRow.cells[5].textContent.replace('BDT', ''));
-                new bootstrap.Modal(document.getElementById('priceModal')).show();
-            }
+                
+                // Add method field for PUT request
+                methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
+                
+                // Fetch price data
+                fetch(`/adminpanel/ticket_prices/${currentEditId}/edit`)
+                    .then(response => response.json())
+                    .then(price => {
+                        // Populate form fields
+                        trainSelect.value = price.train_id;
+                        compartmentSelect.value = price.compartment_id;
+                        classInput.value = price.compartment.class_name;
+                        document.getElementById('base_price').value = price.base_price;
+                        
+                        // Update form action
+                        priceForm.action = `/adminpanel/ticket_prices/${currentEditId}`;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching price data:', error);
+                        alert('Error loading price data');
+                    });
+            });
         });
 
-        // Save/Add
-        priceForm.addEventListener('submit', e => {
-            e.preventDefault();
-            const train_name = document.getElementById('train_name').value;
-            const compartment = document.getElementById('compartment').value;
-            const ac_price = parseFloat(document.getElementById('ac_price').value).toFixed(2);
-            const shovan_price = parseFloat(document.getElementById('shovan_price').value).toFixed(2);
-            const snigdha_price = parseFloat(document.getElementById('snigdha_price').value).toFixed(2);
-
-            if (currentEditRow) {
-                currentEditRow.cells[1].textContent = train_name;
-                currentEditRow.cells[2].textContent = compartment;
-                currentEditRow.cells[3].textContent = `${ac_price}BDT`;
-                currentEditRow.cells[4].textContent = `${shovan_price}BDT`;
-                currentEditRow.cells[5].textContent = `${snigdha_price}BDT`;
-            } else {
-                const newRow = priceTableBody.insertRow();
-                const id = priceTableBody.rows.length + 1;
-                newRow.innerHTML = `
-            <td>${id}</td>
-            <td>${train_name}</td>
-            <td>${compartment}</td>
-            <td>${ac_price}BDT</td>
-            <td>${shovan_price}BDT</td>
-            <td>${snigdha_price}BDT</td>
-            <td>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-warning edit-price-btn">Edit</button>
-                    <button class="btn btn-sm btn-danger delete-price-btn">Delete</button>
-                </div>
-            </td>`;
-            }
-
-            currentEditRow = null;
+        // Reset form for new price
+        document.getElementById('priceModal').addEventListener('hidden.bs.modal', function () {
+            currentEditId = null;
             modalTitle.textContent = 'Add Ticket Price';
+            methodField.innerHTML = '';
+            priceForm.action = '/adminpanel/ticket_prices';
             priceForm.reset();
-            bootstrap.Modal.getInstance(document.getElementById('priceModal')).hide();
+            classInput.value = '';
+        });
+
+        // Form submission
+        priceForm.addEventListener('submit', function(e) {
+            // Form will submit normally to the backend
         });
     </script>
 </body>

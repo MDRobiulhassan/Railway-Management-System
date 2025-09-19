@@ -10,7 +10,9 @@ class UserDashboardController extends Controller
     public function index()
     {
         $userId = Auth::id();
-        $bookings = Booking::with([
+        
+        // Get all bookings with relationships
+        $allBookings = Booking::with([
             'train',
             'tickets.seat',
             'tickets.compartment',
@@ -18,7 +20,22 @@ class UserDashboardController extends Controller
           ->orderByDesc('booking_date')
           ->get();
 
-        return view('user_dashboard', compact('bookings'));
+        // Separate upcoming and past bookings based on travel date
+        $today = now()->startOfDay();
+        
+        $upcomingBookings = $allBookings->filter(function ($booking) use ($today) {
+            $firstTicket = $booking->tickets->first();
+            $travelDate = $firstTicket?->travel_date;
+            return $travelDate && $travelDate->startOfDay()->gte($today);
+        });
+
+        $pastBookings = $allBookings->filter(function ($booking) use ($today) {
+            $firstTicket = $booking->tickets->first();
+            $travelDate = $firstTicket?->travel_date;
+            return $travelDate && $travelDate->startOfDay()->lt($today);
+        });
+
+        return view('user_dashboard', compact('upcomingBookings', 'pastBookings'));
     }
 }
 

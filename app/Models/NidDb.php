@@ -11,8 +11,11 @@ class NidDb extends Model
 
     protected $table = 'nid_db';
     protected $primaryKey = 'user_id';
+    public $incrementing = false;
+    protected $keyType = 'int';
 
     protected $fillable = [
+        'user_id',
         'nid_number',
         'name',
         'dob',

@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Panel - Schedule</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/search.css') }}">
@@ -40,27 +41,40 @@
                     </tr>
                 </thead>
                 <tbody id="trainTableBody">
-                    <tr data-id="1">
-                        <td>1</td>
-                        <td><strong>Subarna Express</strong></td>
-                        <td>Dhaka</td>
-                        <td>Chittagong</td>
-                        <td>2025-09-05 08:00</td>
-                        <td>2025-09-05 14:00</td>
-                        <td>360</td>
-                        <td><span class="badge bg-success">Scheduled</span></td>
-                        <td>
-                            <div><strong>Snigdha:</strong> 500 BDT</div>
-                            <div><strong>Shovan:</strong> 1000 BDT</div>
-                            <div><strong>AC:</strong> 1500 BDT</div>
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-train-btn" data-id="1">Edit</button>
-                                <button class="btn btn-sm btn-danger delete-train-btn" data-id="1">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
+                    @foreach($schedules as $schedule)
+                        <tr data-id="{{ $schedule->schedule_id }}">
+                            <td>{{ $schedule->schedule_id }}</td>
+                            <td><strong>{{ $schedule->train->train_name }}</strong></td>
+                            <td>{{ $schedule->sourceStation->name }}</td>
+                            <td>{{ $schedule->destinationStation->name }}</td>
+                            <td>{{ $schedule->departure_time->format('Y-m-d H:i') }}</td>
+                            <td>{{ $schedule->arrival_time->format('Y-m-d H:i') }}</td>
+                            <td>{{ $schedule->duration }}</td>
+                            <td>
+                                <span class="badge bg-success">
+                                    Scheduled
+                                </span>
+                            </td>
+                            <td>
+                                @php
+                                    $prices = $schedule->train->compartments->groupBy('class_name')->map(function ($compartments) {
+                                        return $compartments->first()->ticketPrices->first()?->base_price ?? 0;
+                                    });
+                                @endphp
+                                <div><strong>Snigdha:</strong> {{ $prices->get('Snigdha', 0) }} BDT</div>
+                                <div><strong>Shovan:</strong> {{ $prices->get('Shovan', 0) }} BDT</div>
+                                <div><strong>AC:</strong> {{ $prices->get('AC', 0) }} BDT</div>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-warning edit-train-btn"
+                                        data-id="{{ $schedule->schedule_id }}">Edit</button>
+                                    <button class="btn btn-sm btn-danger delete-train-btn"
+                                        data-id="{{ $schedule->schedule_id }}">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -76,51 +90,20 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Train & Status Row -->
                         <div class="row">
                             <div class="col-md-6">
-                                <!-- Train Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Train</label>
-                                    <select class="form-select" id="train_name" required>
-                                        <option value="Subarna Express">Subarna Express</option>
-                                        <option value="Mohanganj Express">Mohanganj Express</option>
-                                        <option value="Ekota Express">Ekota Express</option>
-                                    </select>
-                                </div>
-                                <!-- Departure Dropdown -->
-                                <div class="mb-3">
-                                    <label class="form-label">Departure Station</label>
-                                    <select class="form-select" id="departure" required>
-                                        <option value="Dhaka">Dhaka</option>
-                                        <option value="Chittagong">Chittagong</option>
-                                        <option value="Sylhet">Sylhet</option>
-                                        <option value="Rajshahi">Rajshahi</option>
-                                    </select>
-                                </div>
-                                <!-- Arrival Dropdown -->
-                                <div class="mb-3">
-                                    <label class="form-label">Arrival Station</label>
-                                    <select class="form-select" id="arrival" required>
-                                        <option value="Dhaka">Dhaka</option>
-                                        <option value="Chittagong">Chittagong</option>
-                                        <option value="Sylhet">Sylhet</option>
-                                        <option value="Rajshahi">Rajshahi</option>
+                                    <select class="form-select" id="train_id" required>
+                                        <option value="">Select Train</option>
+                                        @foreach($trains as $train)
+                                            <option value="{{ $train->train_id }}">{{ $train->train_name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Departure Time</label>
-                                    <input type="datetime-local" class="form-control" id="departure_time" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Arrival Time</label>
-                                    <input type="datetime-local" class="form-control" id="arrival_time" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Duration (minutes)</label>
-                                    <input type="number" class="form-control" id="duration" required min="1">
-                                </div>
                                 <div class="mb-3">
                                     <label class="form-label">Status</label>
                                     <select class="form-select" id="status" required>
@@ -133,19 +116,70 @@
                             </div>
                         </div>
 
+                        <!-- Departure & Arrival Stations Row -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Departure Station</label>
+                                    <select class="form-select" id="source_station_id" required>
+                                        <option value="">Select Departure Station</option>
+                                        @foreach($stations as $station)
+                                            <option value="{{ $station->station_id }}">{{ $station->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Arrival Station</label>
+                                    <select class="form-select" id="destination_station_id" required>
+                                        <option value="">Select Arrival Station</option>
+                                        @foreach($stations as $station)
+                                            <option value="{{ $station->station_id }}">{{ $station->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Departure & Arrival Times Row -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Departure Time</label>
+                                    <input type="datetime-local" class="form-control" id="departure_time" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Arrival Time</label>
+                                    <input type="datetime-local" class="form-control" id="arrival_time" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Duration (Auto-calculated) -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Duration (minutes)</label>
+                                <input type="number" class="form-control" id="duration_minutes" min="1" required readonly>
+                            </div>
+                        </div>
+
                         <!-- Ticket Pricing -->
                         <div class="row mt-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Snigdha Price</label>
-                                <input type="number" class="form-control" id="economy_price" min="0" required>
-                            </div>
+
                             <div class="col-md-4">
                                 <label class="form-label">AC Price</label>
                                 <input type="number" class="form-control" id="ac_price" min="0" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Shovan Class Price</label>
-                                <input type="number" class="form-control" id="first_price" min="0" required>
+                                <input type="number" class="form-control" id="shovan_price" min="0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Snigdha Price</label>
+                                <input type="number" class="form-control" id="snigdha_price" min="0" required>
                             </div>
                         </div>
                     </div>
@@ -168,52 +202,22 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <input type="hidden" id="edit_train_id">
+                        <input type="hidden" id="edit_schedule_id">
+
+                        <!-- Train & Status Row -->
                         <div class="row">
                             <div class="col-md-6">
-                                <!-- Train Dropdown -->
                                 <div class="mb-3">
                                     <label class="form-label">Train</label>
-                                    <select class="form-select" id="edit_train_name" required>
-                                        <option value="Subarna Express">Subarna Express</option>
-                                        <option value="Mohanganj Express">Mohanganj Express</option>
-                                        <option value="Ekota Express">Ekota Express</option>
-                                    </select>
-                                </div>
-                                <!-- Departure Dropdown -->
-                                <div class="mb-3">
-                                    <label class="form-label">Departure Station</label>
-                                    <select class="form-select" id="edit_departure" required>
-                                        <option value="Dhaka">Dhaka</option>
-                                        <option value="Chittagong">Chittagong</option>
-                                        <option value="Sylhet">Sylhet</option>
-                                        <option value="Rajshahi">Rajshahi</option>
-                                    </select>
-                                </div>
-                                <!-- Arrival Dropdown -->
-                                <div class="mb-3">
-                                    <label class="form-label">Arrival Station</label>
-                                    <select class="form-select" id="edit_arrival" required>
-                                        <option value="Dhaka">Dhaka</option>
-                                        <option value="Chittagong">Chittagong</option>
-                                        <option value="Sylhet">Sylhet</option>
-                                        <option value="Rajshahi">Rajshahi</option>
+                                    <select class="form-select" id="edit_train_id" required>
+                                        <option value="">Select Train</option>
+                                        @foreach($trains as $train)
+                                            <option value="{{ $train->train_id }}">{{ $train->train_name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Departure Time</label>
-                                    <input type="datetime-local" class="form-control" id="edit_departure_time" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Arrival Time</label>
-                                    <input type="datetime-local" class="form-control" id="edit_arrival_time" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Duration (minutes)</label>
-                                    <input type="number" class="form-control" id="edit_duration" min="1" required>
-                                </div>
                                 <div class="mb-3">
                                     <label class="form-label">Status</label>
                                     <select class="form-select" id="edit_status" required>
@@ -226,18 +230,71 @@
                             </div>
                         </div>
 
-                        <div class="row mt-3">
-                            <div class="col-md-4">
-                                <label class="form-label">Snigdha Price</label>
-                                <input type="number" class="form-control" id="edit_economy_price" min="0" required>
+                        <!-- Departure & Arrival Stations Row -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Departure Station</label>
+                                    <select class="form-select" id="edit_source_station_id" required>
+                                        <option value="">Select Departure Station</option>
+                                        @foreach($stations as $station)
+                                            <option value="{{ $station->station_id }}">{{ $station->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Arrival Station</label>
+                                    <select class="form-select" id="edit_destination_station_id" required>
+                                        <option value="">Select Arrival Station</option>
+                                        @foreach($stations as $station)
+                                            <option value="{{ $station->station_id }}">{{ $station->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Departure & Arrival Times Row -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Departure Time</label>
+                                    <input type="datetime-local" class="form-control" id="edit_departure_time" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Arrival Time</label>
+                                    <input type="datetime-local" class="form-control" id="edit_arrival_time" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Duration (Auto-calculated) -->
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Duration (minutes)</label>
+                                <input type="number" class="form-control" id="edit_duration_minutes" min="1" required readonly>
+                            </div>
+                        </div>
+
+
+                        <!-- Ticket Pricing -->
+                        <div class="row mt-3">
+
                             <div class="col-md-4">
                                 <label class="form-label">AC Price</label>
                                 <input type="number" class="form-control" id="edit_ac_price" min="0" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Shovan Class Price</label>
-                                <input type="number" class="form-control" id="edit_first_price" min="0" required>
+                                <input type="number" class="form-control" id="edit_shovan_price" min="0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Snigdha Price</label>
+                                <input type="number" class="form-control" id="edit_snigdha_price" min="0" required>
                             </div>
                         </div>
                     </div>
@@ -249,6 +306,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -266,96 +324,200 @@
             });
         });
 
+        // Auto-calculate duration
+        function calculateDuration() {
+            const departureTime = document.getElementById('departure_time').value;
+            const arrivalTime = document.getElementById('arrival_time').value;
+            
+            if (departureTime && arrivalTime) {
+                const departure = new Date(departureTime);
+                const arrival = new Date(arrivalTime);
+                const durationMinutes = Math.round((arrival - departure) / (1000 * 60));
+                
+                if (durationMinutes > 0) {
+                    document.getElementById('duration_minutes').value = durationMinutes;
+                }
+            }
+        }
+
+        function calculateEditDuration() {
+            const departureTime = document.getElementById('edit_departure_time').value;
+            const arrivalTime = document.getElementById('edit_arrival_time').value;
+            
+            if (departureTime && arrivalTime) {
+                const departure = new Date(departureTime);
+                const arrival = new Date(arrivalTime);
+                const durationMinutes = Math.round((arrival - departure) / (1000 * 60));
+                
+                if (durationMinutes > 0) {
+                    document.getElementById('edit_duration_minutes').value = durationMinutes;
+                }
+            }
+        }
+
+        // Add event listeners for auto-calculation
+        document.getElementById('departure_time').addEventListener('change', calculateDuration);
+        document.getElementById('arrival_time').addEventListener('change', calculateDuration);
+        document.getElementById('edit_departure_time').addEventListener('change', calculateEditDuration);
+        document.getElementById('edit_arrival_time').addEventListener('change', calculateEditDuration);
+
         // Add Train
         addForm.addEventListener('submit', function (e) {
             e.preventDefault();
-            const id = Date.now();
-            const train = {
-                id,
-                name: document.getElementById('train_name').value,
-                departure: document.getElementById('departure').value,
-                arrival: document.getElementById('arrival').value,
-                departure_time: document.getElementById('departure_time').value.replace('T', ' '),
-                arrival_time: document.getElementById('arrival_time').value.replace('T', ' '),
-                duration: document.getElementById('duration').value,
-                status: document.getElementById('status').value,
-                economy: document.getElementById('economy_price').value,
-                ac: document.getElementById('ac_price').value,
-                first: document.getElementById('first_price').value
-            };
 
-            const tr = document.createElement('tr');
-            tr.setAttribute('data-id', id);
-            tr.innerHTML = `
-                <td>${id}</td>
-                <td><strong>${train.name}</strong></td>
-                <td>${train.departure}</td>
-                <td>${train.arrival}</td>
-                <td>${train.departure_time}</td>
-                <td>${train.arrival_time}</td>
-                <td>${train.duration}</td>
-                <td><span class="badge bg-${train.status === 'scheduled' ? 'success' : train.status === 'delayed' ? 'warning' : train.status === 'cancelled' ? 'danger' : 'info'}">${train.status.charAt(0).toUpperCase() + train.status.slice(1)}</span></td>
-                <td>
-                    <div><strong>Snigdha:</strong> ${train.economy} BDT</div>
-                    <div><strong>AC:</strong> ${train.ac} BDT</div>
-                    <div><strong>Shovan:</strong> ${train.first} BDT</div>
-                </td>
-                <td>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-warning edit-train-btn" data-id="${id}">Edit</button>
-                        <button class="btn btn-sm btn-danger delete-train-btn" data-id="${id}">Delete</button>
-                    </div>
-                </td>
-            `;
-            tableBody.appendChild(tr);
-            bootstrap.Modal.getInstance(document.getElementById('addTrainModal')).hide();
-            addForm.reset();
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+            formData.append('train_id', document.getElementById('train_id').value);
+            formData.append('source_station_id', document.getElementById('source_station_id').value);
+            formData.append('destination_station_id', document.getElementById('destination_station_id').value);
+            formData.append('departure_time', document.getElementById('departure_time').value);
+            formData.append('arrival_time', document.getElementById('arrival_time').value);
+            formData.append('duration_minutes', document.getElementById('duration_minutes').value);
+            formData.append('status', document.getElementById('status').value);
+            formData.append('ac_price', document.getElementById('ac_price').value);
+            formData.append('shovan_price', document.getElementById('shovan_price').value);
+            formData.append('snigdha_price', document.getElementById('snigdha_price').value);
+
+            fetch('/admin/schedules', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error creating schedule: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error creating schedule: ' + error.message);
+                });
         });
 
         // Edit Train
         document.addEventListener('click', function (e) {
             if (e.target.classList.contains('edit-train-btn')) {
                 const id = e.target.dataset.id;
-                const tr = document.querySelector(`tr[data-id="${id}"]`);
-                document.getElementById('edit_train_id').value = id;
-                document.getElementById('edit_train_name').value = tr.children[1].textContent.trim();
-                document.getElementById('edit_departure').value = tr.children[2].textContent.trim();
-                document.getElementById('edit_arrival').value = tr.children[3].textContent.trim();
-                document.getElementById('edit_departure_time').value = tr.children[4].textContent.replace(' ', 'T');
-                document.getElementById('edit_arrival_time').value = tr.children[5].textContent.replace(' ', 'T');
-                document.getElementById('edit_duration').value = tr.children[6].textContent;
-                document.getElementById('edit_status').value = tr.children[7].textContent.toLowerCase();
-                document.getElementById('edit_economy_price').value = tr.children[8].children[0].textContent.split(' ')[1];
-                document.getElementById('edit_ac_price').value = tr.children[8].children[1].textContent.split(' ')[1];
-                document.getElementById('edit_first_price').value = tr.children[8].children[2].textContent.split(' ')[1];
-                new bootstrap.Modal(document.getElementById('editTrainModal')).show();
+
+                fetch(`/admin/schedules/${id}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Schedule data:', data); // Debug log
+                        
+                        document.getElementById('edit_schedule_id').value = data.schedule_id;
+                        
+                        // Set train dropdown
+                        const trainSelect = document.getElementById('edit_train_id');
+                        trainSelect.value = data.train_id;
+                        
+                        // Set station dropdowns
+                        const sourceSelect = document.getElementById('edit_source_station_id');
+                        const destSelect = document.getElementById('edit_destination_station_id');
+                        sourceSelect.value = data.source_station_id;
+                        destSelect.value = data.destination_station_id;
+                        
+                        // Set datetime inputs
+                        document.getElementById('edit_departure_time').value = data.departure_time;
+                        document.getElementById('edit_arrival_time').value = data.arrival_time;
+                        
+                        // Set other fields
+                        document.getElementById('edit_duration_minutes').value = data.duration_minutes;
+                        document.getElementById('edit_status').value = data.status;
+                        
+                        // Set price fields
+                        document.getElementById('edit_ac_price').value = data.prices.AC || 0;
+                        document.getElementById('edit_shovan_price').value = data.prices.Shovan || 0;
+                        document.getElementById('edit_snigdha_price').value = data.prices.Snigdha || 0;
+                        
+                        new bootstrap.Modal(document.getElementById('editTrainModal')).show();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error loading schedule data: ' + error.message);
+                    });
             }
             if (e.target.classList.contains('delete-train-btn')) {
-                if (confirm('Are you sure you want to delete this train?')) {
+                if (confirm('Are you sure you want to delete this schedule?')) {
                     const id = e.target.dataset.id;
-                    document.querySelector(`tr[data-id="${id}"]`).remove();
+
+                    fetch(`/admin/schedules/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Error deleting schedule: ' + (data.message || 'Unknown error'));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error deleting schedule: ' + error.message);
+                        });
                 }
             }
         });
 
         editForm.addEventListener('submit', function (e) {
             e.preventDefault();
-            const id = document.getElementById('edit_train_id').value;
-            const tr = document.querySelector(`tr[data-id="${id}"]`);
-            tr.children[1].textContent = document.getElementById('edit_train_name').value;
-            tr.children[2].textContent = document.getElementById('edit_departure').value;
-            tr.children[3].textContent = document.getElementById('edit_arrival').value;
-            tr.children[4].textContent = document.getElementById('edit_departure_time').value.replace('T', ' ');
-            tr.children[5].textContent = document.getElementById('edit_arrival_time').value.replace('T', ' ');
-            tr.children[6].textContent = document.getElementById('edit_duration').value;
-            const status = document.getElementById('edit_status').value;
-            tr.children[7].innerHTML = `<span class="badge bg-${status === 'scheduled' ? 'success' : status === 'delayed' ? 'warning' : status === 'cancelled' ? 'danger' : 'info'}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
-            tr.children[8].innerHTML = `
-                <div><strong>Snigdha:</strong> ${document.getElementById('edit_economy_price').value} BDT</div>
-                <div><strong>AC:</strong> ${document.getElementById('edit_ac_price').value} BDT</div>
-                <div><strong>Shovan:</strong> ${document.getElementById('edit_first_price').value} BDT</div>
-            `;
-            bootstrap.Modal.getInstance(document.getElementById('editTrainModal')).hide();
+
+            const id = document.getElementById('edit_schedule_id').value;
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+            formData.append('_method', 'PUT');
+            formData.append('train_id', document.getElementById('edit_train_id').value);
+            formData.append('source_station_id', document.getElementById('edit_source_station_id').value);
+            formData.append('destination_station_id', document.getElementById('edit_destination_station_id').value);
+            formData.append('departure_time', document.getElementById('edit_departure_time').value);
+            formData.append('arrival_time', document.getElementById('edit_arrival_time').value);
+            formData.append('duration_minutes', document.getElementById('edit_duration_minutes').value);
+            formData.append('status', document.getElementById('edit_status').value);
+            formData.append('ac_price', document.getElementById('edit_ac_price').value);
+            formData.append('shovan_price', document.getElementById('edit_shovan_price').value);
+            formData.append('snigdha_price', document.getElementById('edit_snigdha_price').value);
+
+            fetch(`/admin/schedules/${id}`, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error updating schedule: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error updating schedule: ' + error.message);
+                });
         });
     </script>
 </body>

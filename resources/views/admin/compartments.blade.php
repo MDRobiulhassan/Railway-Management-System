@@ -24,36 +24,67 @@
             </button>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Compartment ID</th>
-                        <th>Train Name</th>
-                        <th>Compartment Name</th>
-                        <th>Class Name</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="compartmentTableBody">
-                    <!-- Sample compartments -->
-                    <tr>
-                        <td>1</td>
-                        <td>Subarna Express</td>
-                        <td>Ka</td>
-                        <td>AC</td>
-                        <td>
-                            <div class="btn-group">
-                                <button class="btn btn-sm btn-warning edit-compartment-btn" data-bs-toggle="modal"
-                                    data-bs-target="#editCompartmentModal" data-id="1" data-train="Subarna Express"
-                                    data-compartment="Ka" data-class="AC">Edit</button>
-                                <button class="btn btn-sm btn-danger delete-compartment-btn">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        @php
+            $groupedCompartments = $compartments->groupBy('train_id');
+        @endphp
+
+        @forelse($groupedCompartments as $trainId => $trainCompartments)
+            @php
+                $train = $trainCompartments->first()->train;
+            @endphp
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        {{ $train->train_name ?? 'N/A' }}
+                        <span class="badge bg-primary ms-2">{{ $trainCompartments->count() }} compartments</span>
+                    </h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Compartment ID</th>
+                                <th>Compartment Name</th>
+                                <th>Class Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($trainCompartments as $compartment)
+                                <tr>
+                                    <td>{{ $compartment->compartment_id }}</td>
+                                    <td>{{ $compartment->compartment_name }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            @if($compartment->class_name === 'AC') bg-success
+                                            @elseif($compartment->class_name === 'Snigdha') bg-warning
+                                            @elseif($compartment->class_name === 'Shovan') bg-info
+                                            @else bg-secondary
+                                            @endif">
+                                            {{ $compartment->class_name }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button class="btn btn-sm btn-warning edit-compartment-btn" data-bs-toggle="modal"
+                                                data-bs-target="#editCompartmentModal" data-id="{{ $compartment->compartment_id }}">Edit</button>
+                                            <form action="{{ route('admin.compartments.destroy', $compartment->compartment_id) }}" method="POST" style="display:inline;"
+                                                onsubmit="return confirm('Delete this compartment?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @empty
+            <div class="alert alert-info">No compartments found</div>
+        @endforelse
     </div>
 
     <!-- Add Compartment Modal -->
@@ -61,23 +92,25 @@
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="addCompartmentForm">
+                <form id="addCompartmentForm" method="POST" action="{{ route('admin.compartments.store') }}">
+                    @csrf
                     <div class="modal-header">
                         <h5 class="modal-title" id="addCompartmentModalLabel">Add Compartment</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="add_train_name" class="form-label">Train Name</label>
-                            <select class="form-select" id="add_train_name" required>
-                                <option value="Subarna Express">Subarna Express</option>
-                                <option value="Mohanganj Express">Mohanganj Express</option>
-                                <option value="Ekota Express">Ekota Express</option>
+                            <label for="add_train_id" class="form-label">Train</label>
+                            <select class="form-select" id="add_train_id" name="train_id" required>
+                                <option value="">Select Train...</option>
+                                @foreach($trains as $train)
+                                    <option value="{{ $train->train_id }}">{{ $train->train_name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="add_compartment_name" class="form-label">Compartment</label>
-                            <select class="form-select" id="add_compartment_name" required>
+                            <select class="form-select" id="add_compartment_name" name="compartment_name" required>
                                 <option value="Ka">Ka</option>
                                 <option value="Kha">Kha</option>
                                 <option value="Ga">Ga</option>
@@ -88,7 +121,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="add_class_name" class="form-label">Class Name</label>
-                            <input type="text" class="form-control" id="add_class_name" readonly>
+                            <input type="text" class="form-control" id="add_class_name" name="class_name" readonly>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -105,7 +138,9 @@
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="editCompartmentForm">
+                <form id="editCompartmentForm" method="POST">
+                    @csrf
+                    @method('PUT')
                     <div class="modal-header">
                         <h5 class="modal-title" id="editCompartmentModalLabel">Edit Compartment</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -113,16 +148,16 @@
                     <div class="modal-body">
                         <input type="hidden" id="edit_compartment_id">
                         <div class="mb-3">
-                            <label for="edit_train_name" class="form-label">Train Name</label>
-                            <select class="form-select" id="edit_train_name" required>
-                                <option value="Subarna Express">Subarna Express</option>
-                                <option value="Mohanganj Express">Mohanganj Express</option>
-                                <option value="Ekota Express">Ekota Express</option>
+                            <label for="edit_train_id" class="form-label">Train</label>
+                            <select class="form-select" id="edit_train_id" name="train_id" required>
+                                @foreach($trains as $train)
+                                    <option value="{{ $train->train_id }}">{{ $train->train_name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="edit_compartment_name" class="form-label">Compartment</label>
-                            <select class="form-select" id="edit_compartment_name" required>
+                            <select class="form-select" id="edit_compartment_name" name="compartment_name" required>
                                 <option value="Ka">Ka</option>
                                 <option value="Kha">Kha</option>
                                 <option value="Ga">Ga</option>
@@ -133,7 +168,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="edit_class_name" class="form-label">Class Name</label>
-                            <input type="text" class="form-control" id="edit_class_name" readonly>
+                            <input type="text" class="form-control" id="edit_class_name" name="class_name" readonly>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -175,71 +210,31 @@
             });
         });
 
-        // Add compartment
-        document.getElementById('addCompartmentForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const train = document.getElementById('add_train_name').value;
-            const compartment = addCompartmentName.value;
-            const cls = addClassName.value;
-            const id = tableBody.querySelectorAll('tr').length + 1;
-
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${id}</td>
-                <td>${train}</td>
-                <td>${compartment}</td>
-                <td>${cls}</td>
-                <td>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-warning edit-compartment-btn" data-bs-toggle="modal"
-                            data-bs-target="#editCompartmentModal"
-                            data-id="${id}" data-train="${train}" data-compartment="${compartment}" data-class="${cls}">Edit</button>
-                        <button class="btn btn-sm btn-danger delete-compartment-btn">Delete</button>
-                    </div>
-                </td>
-            `;
-            tableBody.appendChild(newRow);
-            bootstrap.Modal.getInstance(document.getElementById('addCompartmentModal')).hide();
-            this.reset();
-            addClassName.value = compartmentMap[addCompartmentName.value];
-        });
+        // Add form posts to server; no JS override needed
 
         // Edit compartment
         tableBody.addEventListener('click', function (e) {
             if (e.target.classList.contains('edit-compartment-btn')) {
                 const btn = e.target;
-                document.getElementById('edit_compartment_id').value = btn.dataset.id;
-                document.getElementById('edit_train_name').value = btn.dataset.train;
-                editCompartmentName.value = btn.dataset.compartment;
-                editClassName.value = btn.dataset.class;
+                const id = btn.getAttribute('data-id');
+                fetch(`/adminpanel/compartments/${id}/edit`)
+                    .then(r => r.json())
+                    .then(c => {
+                        document.getElementById('edit_compartment_id').value = c.compartment_id;
+                        document.getElementById('edit_train_id').value = c.train_id;
+                        editCompartmentName.value = c.compartment_name;
+                        editClassName.value = c.class_name;
+                        document.getElementById('editCompartmentForm').action = `/adminpanel/compartments/${id}`;
+                    })
+                    .catch(() => alert('Failed to load compartment'));
             } else if (e.target.classList.contains('delete-compartment-btn')) {
                 if (confirm('Are you sure you want to delete this compartment?')) {
-                    e.target.closest('tr').remove();
+                    // handled by form submit; keep for legacy buttons
                 }
             }
         });
 
-        document.getElementById('editCompartmentForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-            const id = document.getElementById('edit_compartment_id').value;
-            const train = document.getElementById('edit_train_name').value;
-            const compartment = editCompartmentName.value;
-            const cls = editClassName.value;
-
-            tableBody.querySelectorAll('tr').forEach(row => {
-                if (row.cells[0].textContent == id) {
-                    row.cells[1].textContent = train;
-                    row.cells[2].textContent = compartment;
-                    row.cells[3].textContent = cls;
-                    const btn = row.querySelector('.edit-compartment-btn');
-                    btn.dataset.train = train;
-                    btn.dataset.compartment = compartment;
-                    btn.dataset.class = cls;
-                }
-            });
-
-            bootstrap.Modal.getInstance(document.getElementById('editCompartmentModal')).hide();
-        });
+        // Edit form posts to server
     </script>
 </body>
 

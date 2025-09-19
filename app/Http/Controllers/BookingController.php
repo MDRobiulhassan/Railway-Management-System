@@ -31,6 +31,22 @@ class BookingController extends Controller
         $schedule = Schedule::with(['train', 'sourceStation', 'destinationStation'])
                            ->findOrFail($request->schedule_id);
 
+        // Check if user already has 5 tickets for this schedule
+        if (Auth::check()) {
+            $existingTickets = Ticket::join('bookings', 'tickets.booking_id', '=', 'bookings.booking_id')
+                ->where('bookings.user_id', Auth::id())
+                ->where('tickets.train_id', $schedule->train_id)
+                ->where('tickets.travel_date', $schedule->departure_time->format('Y-m-d'))
+                ->where('tickets.ticket_status', '!=', 'cancelled')
+                ->count();
+            
+            if ($existingTickets >= 5) {
+                return redirect()->back()->with('error', 
+                    'You have already booked the maximum of 5 tickets for this journey.'
+                );
+            }
+        }
+
         // Store schedule in session
         session(['booking.schedule_id' => $request->schedule_id]);
         session(['booking.schedule' => $schedule]);
@@ -78,7 +94,18 @@ class BookingController extends Controller
                                  ->get()
                                  ->keyBy('compartment.class_name');
 
-        return view('booking_step1', compact('schedule', 'compartments', 'seats', 'bookedSeats', 'ticketPrices'));
+        // Get user's existing tickets for this schedule
+        $existingTickets = 0;
+        if (Auth::check()) {
+            $existingTickets = Ticket::join('bookings', 'tickets.booking_id', '=', 'bookings.booking_id')
+                ->where('bookings.user_id', Auth::id())
+                ->where('tickets.train_id', $schedule->train_id)
+                ->where('tickets.travel_date', $schedule->departure_time->format('Y-m-d'))
+                ->where('tickets.ticket_status', '!=', 'cancelled')
+                ->count();
+        }
+
+        return view('booking_step1', compact('schedule', 'compartments', 'seats', 'bookedSeats', 'ticketPrices', 'existingTickets'));
     }
 
     /**
@@ -87,11 +114,33 @@ class BookingController extends Controller
     public function step2(Request $request)
     {
         $request->validate([
-            'selected_seats' => 'required|array|min:1',
+            'selected_seats' => 'required|array|min:1|max:5',
             'selected_seats.*' => 'exists:seats,seat_id',
             'class' => 'required|string',
             'compartment_id' => 'required|exists:compartments,compartment_id'
         ]);
+
+        // Check if user already has tickets for this schedule
+        $scheduleId = session('booking.schedule_id');
+        $schedule = session('booking.schedule');
+        
+        if (Auth::check()) {
+            $existingTickets = Ticket::join('bookings', 'tickets.booking_id', '=', 'bookings.booking_id')
+                ->where('bookings.user_id', Auth::id())
+                ->where('tickets.train_id', $schedule->train_id)
+                ->where('tickets.travel_date', $schedule->departure_time->format('Y-m-d'))
+                ->where('tickets.ticket_status', '!=', 'cancelled')
+                ->count();
+            
+            $newTicketCount = count($request->selected_seats);
+            $totalTickets = $existingTickets + $newTicketCount;
+            
+            if ($totalTickets > 5) {
+                return redirect()->back()->with('error', 
+                    "You can only book maximum 5 tickets per schedule. You already have {$existingTickets} ticket(s) for this journey."
+                );
+            }
+        }
 
         // Store seat selection in session
         session(['booking.selected_seats' => $request->selected_seats]);
