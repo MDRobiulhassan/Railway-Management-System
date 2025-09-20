@@ -97,7 +97,7 @@ class AdminController extends Controller
     // Schedules
     public function schedules()
     {
-        $perPage = 15; // Items per page
+        $perPage = 30; // Items per page
         
         $schedules = Schedule::with(['train', 'sourceStation', 'destinationStation'])
             ->orderBy('schedule_id', 'asc')
@@ -258,7 +258,7 @@ class AdminController extends Controller
     {
         $payments = Payment::with(['booking.user', 'booking.train', 'booking.tickets'])
             ->orderBy('payment_id', 'asc')
-            ->paginate(15);
+            ->paginate(30);
 
         // Group payments by schedule/journey
         $paymentsBySchedule = $payments->groupBy(function ($payment) {
@@ -341,7 +341,7 @@ class AdminController extends Controller
     // NID
     public function nid()
     {
-        $nids = NidDb::orderBy('user_id', 'asc')->paginate(15);
+        $nids = NidDb::orderBy('user_id', 'asc')->paginate(30);
         return view('admin.nid', compact('nids'));
     }
 
@@ -396,7 +396,7 @@ class AdminController extends Controller
     // Food Orders
     public function foodOrders()
     {
-        $perPage = 15; // Items per page
+        $perPage = 30; // Items per page
         
         // Get paginated food orders with relationships
         $foodOrders = FoodOrder::with(['booking.user', 'booking.train', 'foodItem'])
@@ -536,7 +536,7 @@ class AdminController extends Controller
     // Bookings
     public function bookings()
     {
-        $perPage = 15;
+        $perPage = 30;
         $bookings = Booking::with(['user', 'train', 'tickets'])
             ->orderBy('booking_id', 'asc')
             ->paginate($perPage);
@@ -625,7 +625,7 @@ class AdminController extends Controller
     {
         $compartments = Compartment::with('train')
             ->orderBy('compartment_id', 'asc')
-            ->paginate(15);
+            ->paginate(perPage: 32);
             
         $trains = Train::with(['compartments' => function($query) {
             $query->orderBy('compartment_id', 'asc');
@@ -673,7 +673,7 @@ class AdminController extends Controller
     // Food Items
     public function foodItems()
     {
-        $perPage = 15; // Items per page
+        $perPage = 30; // Items per page
         
         // Get paginated food items
         $foodItems = FoodItem::orderBy('food_id', 'asc')
@@ -752,7 +752,7 @@ class AdminController extends Controller
     // Users
     public function users()
     {
-        $users = User::orderBy('user_id', 'asc')->paginate(15);
+        $users = User::orderBy('user_id', 'asc')->paginate(30);
         return view('admin.users', compact('users'));
     }
 
@@ -845,7 +845,7 @@ class AdminController extends Controller
     // Trains
     public function trains()
     {
-        $perPage = 15; // Items per page
+        $perPage = 30; // Items per page
         $trains = Train::orderBy('train_id', 'asc')->paginate($perPage);
         return view('admin.trains', compact('trains'));
     }
@@ -931,7 +931,7 @@ class AdminController extends Controller
     // Stations
     public function stations()
     {
-        $perPage = 15; // Items per page
+        $perPage = 30; // Items per page
         $stations = Station::orderBy('station_id', 'asc')->paginate($perPage);
         return view('admin.stations', compact('stations'));
     }
@@ -973,7 +973,7 @@ class AdminController extends Controller
     // Tickets
     public function tickets()
     {
-        $perPage = 15; // Items per page
+        $perPage = 30; // Items per page
         
         // Get paginated tickets
         $tickets = Ticket::with(['booking.user', 'booking.train', 'seat', 'compartment'])
@@ -1056,7 +1056,7 @@ class AdminController extends Controller
     // Ticket Prices
     public function ticketPrices()
     {
-        $perPage = 15; // Items per page
+        $perPage = 30; // Items per page
         
         // Get paginated ticket prices
         $ticketPrices = TicketPrice::with(['train', 'compartment'])

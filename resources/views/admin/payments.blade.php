@@ -101,10 +101,10 @@
                             @endforeach
                         </tbody>
                     </table>
-                    @if($payments->hasPages())
+                    @if($loop->last && $payments->hasPages())
                         <div class="card-footer">
                             <div class="d-flex justify-content-center">
-                                {{ $payments->links('pagination::bootstrap-5') }}
+                                {{ $payments->links('pagination.bootstrap-5') }}
                             </div>
                         </div>
                     @endif

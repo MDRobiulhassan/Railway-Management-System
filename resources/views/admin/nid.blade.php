@@ -83,7 +83,7 @@
             </table>
             @if($nids->hasPages())
                 <div class="d-flex justify-content-center mt-4">
-                    {{ $nids->links('pagination::bootstrap-5') }}
+                    {{ $nids->links('pagination.bootstrap-5') }}
                 </div>
             @endif
         </div>

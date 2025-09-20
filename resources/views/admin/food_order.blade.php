@@ -103,7 +103,7 @@
                     @if($loop->last && $paginatedFoodOrders->hasPages())
                         <div class="card-footer">
                             <div class="d-flex justify-content-center">
-                                {{ $paginatedFoodOrders->links('pagination::bootstrap-5') }}
+                                {{ $paginatedFoodOrders->links('pagination.bootstrap-5') }}
                             </div>
                         </div>
                     @endif

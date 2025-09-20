@@ -52,7 +52,7 @@ class ScheduleController extends Controller
             $query->whereDate('departure_time', $request->date);
         }
 
-        $schedules = $query->orderBy('departure_time', 'asc')->paginate(15);
+        $schedules = $query->orderBy('departure_time', 'asc')->paginate(10);
         
         // Get all stations for search dropdowns
         $stations = Station::orderBy('name')->get();

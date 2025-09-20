@@ -75,7 +75,7 @@
             </table>
             @if($stations->hasPages())
                 <div class="d-flex justify-content-center mt-4">
-                    {{ $stations->links('pagination::bootstrap-5') }}
+                    {{ $stations->links('pagination.bootstrap-5') }}
                 </div>
             @endif
         </div>

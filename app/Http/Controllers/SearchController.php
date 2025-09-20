@@ -46,7 +46,7 @@ class SearchController extends Controller
         // Filter by class (this would need ticket_prices table integration)
         $selectedClass = $request->get('class');
 
-        $schedules = $query->orderBy('departure_time', 'asc')->paginate(15);
+        $schedules = $query->orderBy('departure_time', 'asc')->paginate(10);
         
         // Pass search parameters to view
         $searchParams = [

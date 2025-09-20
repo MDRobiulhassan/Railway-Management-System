@@ -106,7 +106,7 @@
         <!-- Pagination -->
         @if(isset($schedules) && $schedules->hasPages())
         <div class="d-flex justify-content-center mt-4">
-            {{ $schedules->appends(request()->query())->links() }}
+            {{ $schedules->appends(request()->query())->links('pagination.bootstrap-5') }}
         </div>
         @endif
     </div>

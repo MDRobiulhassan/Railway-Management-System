@@ -101,7 +101,7 @@
                         @if($loop->last && $paginatedTicketPrices->hasPages())
                             <div class="card-footer">
                                 <div class="d-flex justify-content-center">
-                                    {{ $paginatedTicketPrices->links('pagination::bootstrap-5') }}
+                                    {{ $paginatedTicketPrices->links('pagination.bootstrap-5') }}
                                 </div>
                             </div>
                         @endif

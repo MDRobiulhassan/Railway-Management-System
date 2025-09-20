@@ -80,10 +80,10 @@
                             @endforeach
                         </tbody>
                     </table>
-                    @if($compartments->hasPages())
+                    @if($loop->last && $compartments->hasPages())
                         <div class="card-footer">
                             <div class="d-flex justify-content-center">
-                                {{ $compartments->links('pagination::bootstrap-5') }}
+                                {{ $compartments->links('pagination.bootstrap-5') }}
                             </div>
                         </div>
                     @endif

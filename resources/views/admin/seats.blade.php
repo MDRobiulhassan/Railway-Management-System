@@ -112,7 +112,7 @@
         @if($seats->hasPages())
             <div class="d-flex justify-content-center">
                     <nav aria-label="Seats pagination">
-                    {{ $seats->links('pagination::bootstrap-4') }}
+                    {{ $seats->links('pagination.bootstrap-5') }}
                     </nav>
             </div>
         @endif
