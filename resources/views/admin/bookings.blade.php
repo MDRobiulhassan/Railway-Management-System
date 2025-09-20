@@ -97,6 +97,13 @@
                             @endforeach
                         </tbody>
                     </table>
+                    @if($bookings->hasPages())
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-center">
+                                {{ $bookings->links('pagination::bootstrap-5') }}
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         @empty

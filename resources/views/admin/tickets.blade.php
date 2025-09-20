@@ -101,6 +101,13 @@
                             @endforeach
                         </tbody>
                     </table>
+                    @if($loop->last && $paginatedTickets->hasPages())
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-center">
+                                {{ $paginatedTickets->links('pagination::bootstrap-5') }}
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         @empty

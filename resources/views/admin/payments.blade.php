@@ -101,6 +101,13 @@
                             @endforeach
                         </tbody>
                     </table>
+                    @if($payments->hasPages())
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-center">
+                                {{ $payments->links('pagination::bootstrap-5') }}
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         @empty
