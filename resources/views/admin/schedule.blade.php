@@ -77,6 +77,11 @@
                     @endforeach
                 </tbody>
             </table>
+            @if($schedules->hasPages())
+                <div class="d-flex justify-content-center mt-4">
+                    {{ $schedules->links('pagination::bootstrap-5') }}
+                </div>
+            @endif
         </div>
     </div>
 

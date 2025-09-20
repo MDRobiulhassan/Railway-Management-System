@@ -80,6 +80,13 @@
                             @endforeach
                         </tbody>
                     </table>
+                    @if($compartments->hasPages())
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-center">
+                                {{ $compartments->links('pagination::bootstrap-5') }}
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         @empty

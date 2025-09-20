@@ -86,6 +86,11 @@
                     @endforelse
                 </tbody>
             </table>
+            @if($trains->hasPages())
+                <div class="d-flex justify-content-center mt-4">
+                    {{ $trains->links('pagination::bootstrap-5') }}
+                </div>
+            @endif
         </div>
     </div>
 

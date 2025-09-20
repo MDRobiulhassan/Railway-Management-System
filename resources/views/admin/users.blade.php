@@ -98,6 +98,11 @@
                     @endforelse
                 </tbody>
             </table>
+            @if($users->hasPages())
+                <div class="d-flex justify-content-center mt-4">
+                    {{ $users->links('pagination::bootstrap-5') }}
+                </div>
+            @endif
         </div>
     </div>
 

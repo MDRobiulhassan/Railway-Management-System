@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\NidDb;
 use App\Models\Train;
 use App\Models\Station;
 use App\Models\Schedule;
@@ -14,7 +15,6 @@ use App\Models\Payment;
 use App\Models\FoodItem;
 use App\Models\FoodOrder;
 use App\Models\TicketPrice;
-use App\Models\NidDb;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -97,10 +97,20 @@ class AdminController extends Controller
     // Schedules
     public function schedules()
     {
-        $schedules = Schedule::with(['train', 'sourceStation', 'destinationStation'])->orderBy('schedule_id', 'asc')->get();
+        $perPage = 15; // Items per page
+        
+        $schedules = Schedule::with(['train', 'sourceStation', 'destinationStation'])
+            ->orderBy('schedule_id', 'asc')
+            ->paginate($perPage);
+            
         $trains = Train::orderBy('train_id', 'asc')->get(['train_id', 'train_name']);
         $stations = Station::orderBy('station_id', 'asc')->get(['station_id', 'name']);
-        return view('admin.schedule', compact('schedules', 'trains', 'stations'));
+        
+        return view('admin.schedule', [
+            'schedules' => $schedules,
+            'trains' => $trains,
+            'stations' => $stations
+        ]);
     }
 
     public function getSchedule($id)
@@ -248,7 +258,7 @@ class AdminController extends Controller
     {
         $payments = Payment::with(['booking.user', 'booking.train', 'booking.tickets'])
             ->orderBy('payment_id', 'asc')
-            ->get();
+            ->paginate(15);
 
         // Group payments by schedule/journey
         $paymentsBySchedule = $payments->groupBy(function ($payment) {
@@ -263,20 +273,19 @@ class AdminController extends Controller
             
             return [
                 'train_name' => $train->train_name,
-                'route' => 'Route Info', // You can enhance this with actual route data
-                'departure_time' => $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
+                'route' => $firstTicket ? ($firstTicket->source_station . ' to ' . $firstTicket->destination_station) : 'N/A',
+                'departure_time' => $firstTicket && $firstTicket->departure_time ? $firstTicket->departure_time->format('Y-m-d H:i') : 'N/A',
                 'payments' => $schedulePayments
             ];
         });
-            
-        return view('admin.payments', [
-            'paymentsBySchedule' => $paymentsBySchedule,
-            'statusLabels' => [
-                'completed' => 'Completed Payments',
-                'pending' => 'Pending Payments',
-                'failed' => 'Failed Payments'
-            ]
-        ]);
+
+        $statusLabels = [
+            'completed' => 'Completed Payments',
+            'pending' => 'Pending Payments',
+            'failed' => 'Failed Payments',
+        ];
+
+        return view('admin.payments', compact('payments', 'paymentsBySchedule', 'statusLabels'));
     }
 
     public function getPayment($id)
@@ -332,7 +341,7 @@ class AdminController extends Controller
     // NID
     public function nid()
     {
-        $nids = NidDb::orderBy('user_id', 'asc')->get();
+        $nids = NidDb::orderBy('user_id', 'asc')->paginate(15);
         return view('admin.nid', compact('nids'));
     }
 
@@ -387,34 +396,39 @@ class AdminController extends Controller
     // Food Orders
     public function foodOrders()
     {
-        $foodOrders = FoodOrder::with(['booking.user', 'booking.train', 'booking.tickets', 'foodItem'])
+        $perPage = 15; // Items per page
+        
+        // Get paginated food orders with relationships
+        $foodOrders = FoodOrder::with(['booking.user', 'booking.train', 'foodItem'])
             ->orderBy('order_id', 'asc')
-            ->get();
+            ->paginate($perPage);
 
-        // Group food orders by schedule/journey
-        $foodOrdersBySchedule = $foodOrders->groupBy(function ($order) {
+        // Group food orders by schedule/journey for display
+        $foodOrdersBySchedule = $foodOrders->groupBy(function($order) {
             $train = $order->booking->train;
             $firstTicket = $order->booking->tickets->first();
             $travelDate = $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown';
             return $train->train_name . '_' . $travelDate;
-        })->map(function ($scheduleOrders) {
+        })->map(function($scheduleOrders) {
             $firstOrder = $scheduleOrders->first();
             $train = $firstOrder->booking->train;
             $firstTicket = $firstOrder->booking->tickets->first();
             
             return [
                 'train_name' => $train->train_name,
-                'route' => 'Route Info', // You can enhance this with actual route data
-                'departure_time' => $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
+                'route' => $firstTicket ? ($firstTicket->source_station . ' to ' . $firstTicket->destination_station) : 'N/A',
+                'departure_time' => $firstTicket && $firstTicket->departure_time ? $firstTicket->departure_time->format('Y-m-d H:i') : 'N/A',
                 'orders' => $scheduleOrders
             ];
         });
             
-        $bookings = Booking::with('user')->get()->keyBy('booking_id');
-        $foodItems = FoodItem::get(['food_id', 'name', 'price']);
+        // Get bookings and food items for the form
+        $bookings = Booking::with('user')->orderBy('booking_id', 'desc')->get();
+        $foodItems = FoodItem::orderBy('name')->get();
             
         return view('admin.food_order', [
             'foodOrdersBySchedule' => $foodOrdersBySchedule,
+            'paginatedFoodOrders' => $foodOrders,
             'bookings' => $bookings,
             'foodItems' => $foodItems
         ]);
@@ -522,12 +536,13 @@ class AdminController extends Controller
     // Bookings
     public function bookings()
     {
+        $perPage = 15;
         $bookings = Booking::with(['user', 'train', 'tickets'])
             ->orderBy('booking_id', 'asc')
-            ->get();
+            ->paginate($perPage);
 
-        // Group bookings by schedule/journey
-        $bookingsBySchedule = $bookings->groupBy(function ($booking) {
+        // Group bookings by schedule/journey for display
+        $groupedBookings = collect($bookings->items())->groupBy(function ($booking) {
             $train = $booking->train;
             $firstTicket = $booking->tickets->first();
             $travelDate = $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown';
@@ -546,7 +561,8 @@ class AdminController extends Controller
         });
             
         return view('admin.bookings', [
-            'bookingsBySchedule' => $bookingsBySchedule,
+            'bookingsBySchedule' => $groupedBookings,
+            'bookings' => $bookings, // Pass the paginator instance
             'statusLabels' => [
                 'confirmed' => 'Confirmed Bookings',
                 'pending' => 'Pending Bookings',
@@ -609,7 +625,7 @@ class AdminController extends Controller
     {
         $compartments = Compartment::with('train')
             ->orderBy('compartment_id', 'asc')
-            ->get();
+            ->paginate(15);
             
         $trains = Train::with(['compartments' => function($query) {
             $query->orderBy('compartment_id', 'asc');
@@ -657,15 +673,21 @@ class AdminController extends Controller
     // Food Items
     public function foodItems()
     {
+        $perPage = 15; // Items per page
+        
+        // Get paginated food items
         $foodItems = FoodItem::orderBy('food_id', 'asc')
-            ->get()
-            ->groupBy('category');
+            ->paginate($perPage);
             
-        // Get all unique categories in the order they first appear
-        $categories = $foodItems->keys()->filter()->values();
+        // Group by category for display
+        $groupedFoodItems = $foodItems->groupBy('category');
+        
+        // Get all unique categories
+        $categories = $groupedFoodItems->keys()->filter()->values();
         
         return view('admin.food_items', [
-            'foodItems' => $foodItems,
+            'foodItems' => $groupedFoodItems,
+            'paginatedFoodItems' => $foodItems, // Pass the paginator instance
             'categories' => $categories
         ]);
     }
@@ -730,7 +752,7 @@ class AdminController extends Controller
     // Users
     public function users()
     {
-        $users = User::orderBy('user_id', 'asc')->get();
+        $users = User::orderBy('user_id', 'asc')->paginate(15);
         return view('admin.users', compact('users'));
     }
 
@@ -823,7 +845,8 @@ class AdminController extends Controller
     // Trains
     public function trains()
     {
-        $trains = Train::orderBy('train_id', 'asc')->get();
+        $perPage = 15; // Items per page
+        $trains = Train::orderBy('train_id', 'asc')->paginate($perPage);
         return view('admin.trains', compact('trains'));
     }
 
@@ -908,7 +931,8 @@ class AdminController extends Controller
     // Stations
     public function stations()
     {
-        $stations = Station::orderBy('station_id', 'asc')->get();
+        $perPage = 15; // Items per page
+        $stations = Station::orderBy('station_id', 'asc')->paginate($perPage);
         return view('admin.stations', compact('stations'));
     }
 
@@ -949,11 +973,14 @@ class AdminController extends Controller
     // Tickets
     public function tickets()
     {
+        $perPage = 15; // Items per page
+        
+        // Get paginated tickets
         $tickets = Ticket::with(['booking.user', 'booking.train', 'seat', 'compartment'])
             ->orderBy('ticket_id', 'asc')
-            ->get();
+            ->paginate($perPage);
 
-        // Group tickets by schedule/journey
+        // Group tickets by schedule/journey for display
         $ticketsBySchedule = $tickets->groupBy(function ($ticket) {
             $train = $ticket->booking->train;
             $travelDate = $ticket->travel_date ? $ticket->travel_date->format('Y-m-d') : 'Unknown';
@@ -970,7 +997,10 @@ class AdminController extends Controller
             ];
         });
 
-        return view('admin.tickets', compact('ticketsBySchedule'));
+        return view('admin.tickets', [
+            'ticketsBySchedule' => $ticketsBySchedule,
+            'paginatedTickets' => $tickets
+        ]);
     }
 
     public function getTicket($id)
@@ -1026,17 +1056,24 @@ class AdminController extends Controller
     // Ticket Prices
     public function ticketPrices()
     {
+        $perPage = 15; // Items per page
+        
+        // Get paginated ticket prices
         $ticketPrices = TicketPrice::with(['train', 'compartment'])
             ->orderBy('price_id', 'asc')
-            ->get()
-            ->groupBy('train_id');
+            ->paginate($perPage);
             
-        $trains = Train::whereIn('train_id', $ticketPrices->keys())
+        // Group by train for display
+        $groupedPrices = $ticketPrices->groupBy('train_id');
+            
+        // Get all trains with prices
+        $trains = Train::whereIn('train_id', $groupedPrices->keys())
             ->get()
             ->keyBy('train_id');
             
         return view('admin.ticket_prices', [
-            'ticketPrices' => $ticketPrices,
+            'ticketPrices' => $groupedPrices,
+            'paginatedTicketPrices' => $ticketPrices,
             'trains' => $trains
         ]);
     }
