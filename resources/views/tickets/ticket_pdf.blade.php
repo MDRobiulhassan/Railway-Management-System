@@ -311,6 +311,26 @@
                 </div>
             @endif
 
+            <!-- Payment Information -->
+            @if($booking->payment)
+                <div class="section">
+                    <h4>Payment Details</h4>
+                    <div class="row">
+                        <div class="col">
+                            Payment Method: {{ $booking->payment->payment_method }}<br>
+                            Transaction ID: {{ $booking->payment->transaction_id ?? 'N/A' }}
+                        </div>
+                        <div class="col">
+                            Payment Status: 
+                            <span class="badge badge-{{ $booking->payment->payment_status === 'completed' ? 'success' : ($booking->payment->payment_status === 'pending' ? 'warning' : 'danger') }}">
+                                {{ ucfirst($booking->payment->payment_status) }}
+                            </span><br>
+                            Paid At: {{ $booking->payment->paid_at ? $booking->payment->paid_at->format('Y-m-d H:i') : 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div class="footer">
                 Thank you for traveling with Bangladesh Railways<br>
                 Generated on: {{ now()->format('Y-m-d H:i:s') }}

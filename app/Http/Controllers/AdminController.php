@@ -97,7 +97,7 @@ class AdminController extends Controller
     // Schedules
     public function schedules()
     {
-        $perPage = 30; // Items per page
+        $perPage = 10; // Items per page
         
         $schedules = Schedule::with(['train', 'sourceStation', 'destinationStation'])
             ->orderBy('schedule_id', 'asc')
@@ -258,7 +258,7 @@ class AdminController extends Controller
     {
         $payments = Payment::with(['booking.user', 'booking.train', 'booking.tickets'])
             ->orderBy('payment_id', 'asc')
-            ->paginate(30);
+            ->paginate(10);
 
         // Group payments by schedule/journey
         $paymentsBySchedule = $payments->groupBy(function ($payment) {
@@ -271,10 +271,23 @@ class AdminController extends Controller
             $train = $firstPayment->booking->train;
             $firstTicket = $firstPayment->booking->tickets->first();
             
+            // Get route information from schedule
+            $route = 'Route Info';
+            if ($firstTicket && $firstTicket->travel_date) {
+                $schedule = Schedule::with(['sourceStation', 'destinationStation'])
+                    ->where('train_id', $train->train_id)
+                    ->whereDate('departure_time', $firstTicket->travel_date)
+                    ->first();
+                
+                if ($schedule) {
+                    $route = $schedule->sourceStation->name . ' → ' . $schedule->destinationStation->name;
+                }
+            }
+            
             return [
                 'train_name' => $train->train_name,
-                'route' => $firstTicket ? ($firstTicket->source_station . ' to ' . $firstTicket->destination_station) : 'N/A',
-                'departure_time' => $firstTicket && $firstTicket->departure_time ? $firstTicket->departure_time->format('Y-m-d H:i') : 'N/A',
+                'route' => $route,
+                'departure_time' => $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
                 'payments' => $schedulePayments
             ];
         });
@@ -312,6 +325,12 @@ class AdminController extends Controller
             'transaction_id' => 'nullable|string|max:255',
             'paid_at' => 'nullable|date',
         ]);
+        
+        // Generate transaction ID if not provided
+        if (empty($validated['transaction_id'])) {
+            $validated['transaction_id'] = $this->generateTransactionId($validated['payment_method'], $validated['booking_id']);
+        }
+        
         Payment::create($validated);
         return redirect()->route('admin.payments')->with('success', 'Payment created successfully');
     }
@@ -341,7 +360,7 @@ class AdminController extends Controller
     // NID
     public function nid()
     {
-        $nids = NidDb::orderBy('user_id', 'asc')->paginate(30);
+        $nids = NidDb::orderBy('user_id', 'asc')->paginate(10);
         return view('admin.nid', compact('nids'));
     }
 
@@ -396,7 +415,7 @@ class AdminController extends Controller
     // Food Orders
     public function foodOrders()
     {
-        $perPage = 30; // Items per page
+        $perPage = 10; // Items per page
         
         // Get paginated food orders with relationships
         $foodOrders = FoodOrder::with(['booking.user', 'booking.train', 'foodItem'])
@@ -414,10 +433,23 @@ class AdminController extends Controller
             $train = $firstOrder->booking->train;
             $firstTicket = $firstOrder->booking->tickets->first();
             
+            // Get route information from schedule
+            $route = 'Route Info';
+            if ($firstTicket && $firstTicket->travel_date) {
+                $schedule = Schedule::with(['sourceStation', 'destinationStation'])
+                    ->where('train_id', $train->train_id)
+                    ->whereDate('departure_time', $firstTicket->travel_date)
+                    ->first();
+                
+                if ($schedule) {
+                    $route = $schedule->sourceStation->name . ' → ' . $schedule->destinationStation->name;
+                }
+            }
+            
             return [
                 'train_name' => $train->train_name,
-                'route' => $firstTicket ? ($firstTicket->source_station . ' to ' . $firstTicket->destination_station) : 'N/A',
-                'departure_time' => $firstTicket && $firstTicket->departure_time ? $firstTicket->departure_time->format('Y-m-d H:i') : 'N/A',
+                'route' => $route,
+                'departure_time' => $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
                 'orders' => $scheduleOrders
             ];
         });
@@ -536,8 +568,8 @@ class AdminController extends Controller
     // Bookings
     public function bookings()
     {
-        $perPage = 30;
-        $bookings = Booking::with(['user', 'train', 'tickets'])
+        $perPage = 10;
+        $bookings = Booking::with(['user', 'train', 'tickets', 'payment'])
             ->orderBy('booking_id', 'asc')
             ->paginate($perPage);
 
@@ -552,9 +584,22 @@ class AdminController extends Controller
             $train = $firstBooking->train;
             $firstTicket = $firstBooking->tickets->first();
             
+            // Get route information from schedule
+            $route = 'Route Info';
+            if ($firstTicket && $firstTicket->travel_date) {
+                $schedule = Schedule::with(['sourceStation', 'destinationStation'])
+                    ->where('train_id', $train->train_id)
+                    ->whereDate('departure_time', $firstTicket->travel_date)
+                    ->first();
+                
+                if ($schedule) {
+                    $route = $schedule->sourceStation->name . ' → ' . $schedule->destinationStation->name;
+                }
+            }
+            
             return [
                 'train_name' => $train->train_name,
-                'route' => 'Route Info', // You can enhance this with actual route data
+                'route' => $route,
                 'departure_time' => $firstTicket && $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
                 'bookings' => $scheduleBookings
             ];
@@ -625,7 +670,7 @@ class AdminController extends Controller
     {
         $compartments = Compartment::with('train')
             ->orderBy('compartment_id', 'asc')
-            ->paginate(perPage: 32);
+            ->paginate(10);
             
         $trains = Train::with(['compartments' => function($query) {
             $query->orderBy('compartment_id', 'asc');
@@ -673,7 +718,7 @@ class AdminController extends Controller
     // Food Items
     public function foodItems()
     {
-        $perPage = 30; // Items per page
+        $perPage = 10; // Items per page
         
         // Get paginated food items
         $foodItems = FoodItem::orderBy('food_id', 'asc')
@@ -752,7 +797,7 @@ class AdminController extends Controller
     // Users
     public function users()
     {
-        $users = User::orderBy('user_id', 'asc')->paginate(30);
+        $users = User::orderBy('user_id', 'asc')->paginate(10);
         return view('admin.users', compact('users'));
     }
 
@@ -845,7 +890,7 @@ class AdminController extends Controller
     // Trains
     public function trains()
     {
-        $perPage = 30; // Items per page
+        $perPage = 10; // Items per page
         $trains = Train::orderBy('train_id', 'asc')->paginate($perPage);
         return view('admin.trains', compact('trains'));
     }
@@ -931,7 +976,7 @@ class AdminController extends Controller
     // Stations
     public function stations()
     {
-        $perPage = 30; // Items per page
+        $perPage = 10; // Items per page
         $stations = Station::orderBy('station_id', 'asc')->paginate($perPage);
         return view('admin.stations', compact('stations'));
     }
@@ -973,7 +1018,7 @@ class AdminController extends Controller
     // Tickets
     public function tickets()
     {
-        $perPage = 30; // Items per page
+        $perPage = 10; // Items per page
         
         // Get paginated tickets
         $tickets = Ticket::with(['booking.user', 'booking.train', 'seat', 'compartment'])
@@ -989,9 +1034,20 @@ class AdminController extends Controller
             $firstTicket = $scheduleTickets->first();
             $train = $firstTicket->booking->train;
             
+            // Get route information from schedule
+            $schedule = Schedule::with(['sourceStation', 'destinationStation'])
+                ->where('train_id', $train->train_id)
+                ->whereDate('departure_time', $firstTicket->travel_date)
+                ->first();
+            
+            $route = 'Route Info';
+            if ($schedule) {
+                $route = $schedule->sourceStation->name . ' → ' . $schedule->destinationStation->name;
+            }
+            
             return [
                 'train_name' => $train->train_name,
-                'route' => 'Route Info', // You can enhance this with actual route data
+                'route' => $route,
                 'departure_time' => $firstTicket->travel_date ? $firstTicket->travel_date->format('Y-m-d') : 'Unknown',
                 'tickets' => $scheduleTickets
             ];
@@ -1056,7 +1112,7 @@ class AdminController extends Controller
     // Ticket Prices
     public function ticketPrices()
     {
-        $perPage = 30; // Items per page
+        $perPage = 10; // Items per page
         
         // Get paginated ticket prices
         $ticketPrices = TicketPrice::with(['train', 'compartment'])
@@ -1153,5 +1209,26 @@ class AdminController extends Controller
             Train::orderBy('train_name')
                 ->get(['train_id', 'train_name'])
         );
+    }
+
+    /**
+     * Generate unique transaction ID based on payment method
+     */
+    private function generateTransactionId($paymentMethod, $bookingId)
+    {
+        $timestamp = now()->format('YmdHis');
+        $random = strtoupper(substr(md5(uniqid()), 0, 6));
+        
+        // Create payment method prefix
+        $methodPrefix = match($paymentMethod) {
+            'bKash' => 'BK',
+            'Nagad' => 'NG', 
+            'Card' => 'CD',
+            default => 'ADM' // Admin created
+        };
+        
+        // Format: METHOD_TIMESTAMP_BOOKINGID_RANDOM
+        // Example: BK_20241122143052_1234_A1B2C3
+        return $methodPrefix . '_' . $timestamp . '_' . $bookingId . '_' . $random;
     }
 }

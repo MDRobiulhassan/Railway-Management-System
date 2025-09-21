@@ -158,6 +158,26 @@
                     </div>
                 @endif
 
+                <!-- Payment Information -->
+                @if($booking->payment)
+                    <div class="section">
+                        <h4><i class="fas fa-credit-card"></i> Payment Details</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Payment Method:</strong> {{ $booking->payment->payment_method }}<br>
+                                <strong>Transaction ID:</strong> {{ $booking->payment->transaction_id ?? 'N/A' }}<br>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Payment Status:</strong> 
+                                <span class="badge badge-{{ $booking->payment->payment_status === 'completed' ? 'success' : ($booking->payment->payment_status === 'pending' ? 'warning' : 'danger') }}">
+                                    {{ ucfirst($booking->payment->payment_status) }}
+                                </span><br>
+                                <strong>Paid At:</strong> {{ $booking->payment->paid_at ? $booking->payment->paid_at->format('Y-m-d H:i') : 'N/A' }}
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="footer">
                     <p><i class="fas fa-heart"></i> Thank you for traveling with Bangladesh Railways</p>
                     <small>Generated on: {{ now()->format('Y-m-d H:i:s') }}</small>

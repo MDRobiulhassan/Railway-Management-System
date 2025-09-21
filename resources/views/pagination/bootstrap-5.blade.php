@@ -1,4 +1,4 @@
-@if ($paginator->hasPages() && $paginator->total() > 30)
+@if ($paginator->hasPages())
     <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
             {{-- Previous Page Link --}}

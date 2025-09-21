@@ -16,6 +16,7 @@ class UserDashboardController extends Controller
             'train',
             'tickets.seat',
             'tickets.compartment',
+            'payment'
         ])->where('user_id', $userId)
           ->orderByDesc('booking_date')
           ->get();

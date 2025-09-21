@@ -298,12 +298,16 @@ class BookingController extends Controller
                 }
             }
 
+            // Generate unique transaction ID
+            $transactionId = $this->generateTransactionId($bookingData['payment_method'], $booking->booking_id);
+
             // Create payment record
             Payment::create([
                 'booking_id' => $booking->booking_id,
                 'amount' => $totalAmount,
                 'payment_method' => $bookingData['payment_method'],
                 'payment_status' => 'completed',
+                'transaction_id' => $transactionId,
                 'paid_at' => now()
             ]);
 
@@ -370,6 +374,27 @@ class BookingController extends Controller
 
         $basePrice = $ticketPrice ? $ticketPrice->base_price : 350; // Default price
         return $basePrice * count($bookingData['selected_seats']);
+    }
+
+    /**
+     * Generate unique transaction ID based on payment method
+     */
+    private function generateTransactionId($paymentMethod, $bookingId)
+    {
+        $timestamp = now()->format('YmdHis');
+        $random = strtoupper(substr(md5(uniqid()), 0, 6));
+        
+        // Create payment method prefix
+        $methodPrefix = match($paymentMethod) {
+            'bKash' => 'BK',
+            'Nagad' => 'NG', 
+            'Card' => 'CD',
+            default => 'PM'
+        };
+        
+        // Format: METHOD_TIMESTAMP_BOOKINGID_RANDOM
+        // Example: BK_20241122143052_1234_A1B2C3
+        return $methodPrefix . '_' . $timestamp . '_' . $bookingId . '_' . $random;
     }
 
     /**

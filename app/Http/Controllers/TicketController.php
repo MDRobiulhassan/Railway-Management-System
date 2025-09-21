@@ -17,6 +17,7 @@ class TicketController extends Controller
             'tickets.seat',
             'tickets.compartment',
             'tickets',
+            'payment'
         ])->findOrFail($bookingId);
 
         if (Auth::id() !== $booking->user_id && !(Auth::user() && Auth::user()->role === 'admin')) {
@@ -45,6 +46,7 @@ class TicketController extends Controller
             'tickets.seat',
             'tickets.compartment',
             'tickets',
+            'payment'
         ])->findOrFail($bookingId);
 
         if (Auth::id() !== $booking->user_id && !(Auth::user() && Auth::user()->role === 'admin')) {

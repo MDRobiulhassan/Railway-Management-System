@@ -18,18 +18,18 @@ A comprehensive web-based railway management system built with Laravel 11, desig
 - **Food Ordering Integration** - Order meals during booking with categorized menu
 - **Smart Dashboard** - Separate upcoming and past bookings with status tracking
 - **Profile Management** - Update personal information, photo, and contact details
-- **Ticket Management** - View, download PDF tickets with QR codes
+- **Ticket Management** - View, download PDF tickets
 - **Payment Processing** - Secure payment handling with status tracking
 
 ### 🔧 Admin Features
 - **Comprehensive Admin Panel** - Complete CRUD operations for all entities
-- **Schedule Management** - Create schedules with automatic duration calculation
+- **Schedule Management** - Create schedules with automatic duration calculation and ticket pricing (class-based)
 - **User Management** - Manage user accounts, roles (user/admin), and NID verification
 - **Train & Infrastructure** - Manage trains, stations, compartments, and seat arrangements
 - **Booking Oversight** - View all bookings grouped by schedule/journey
 - **Payment Monitoring** - Track payments with status management
 - **Food Service Management** - Manage food items, categories, and orders
-- **NID Database** - Government-style NID verification system
+- **NID Database** - Government-style NID Database for user verification
 - **Dynamic Pricing** - Set class-based ticket prices per compartment
 
 ## 🛠️ Technology Stack
