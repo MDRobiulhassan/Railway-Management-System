@@ -48,10 +48,10 @@
                     <input type="email" class="form-control" value="{{ $user->email }}" readonly>
                 </div>
 
-                <div class="mb-3 text-start">
+                <!-- <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Role</label>
                     <input type="text" class="form-control" value="{{ ucfirst($user->role) }}" readonly>
-                </div>
+                </div> -->
 
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">NID Number</label>
@@ -63,10 +63,10 @@
                     <input type="text" class="form-control" value="{{ $user->nid_verified ? 'Verified' : 'Not Verified' }}" readonly>
                 </div>
 
-                <div class="mb-3 text-start">
+                <!-- <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Account Created</label>
                     <input type="text" class="form-control" value="{{ $user->created_at?->format('Y-m-d H:i') }}" readonly>
-                </div>
+                </div> -->
 
                 <!-- Editable fields -->
                 <div class="mb-3 text-start">

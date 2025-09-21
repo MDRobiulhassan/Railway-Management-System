@@ -167,7 +167,7 @@ jobs                    # Background job queue
 ### 🎫 Booking Process
 1. **Search Phase**: User searches trains by route and date
 2. **Selection Phase**: Choose schedule with real-time availability
-3. **Seat Selection**: Pick compartment class and specific seats
+3. **Seat Selection**: Pick compartment class and specific seats (5 Seats per NID in a single schedule)
 4. **Food Ordering**: Optional meal selection from categorized menu
 5. **Payment**: Secure payment processing with validation
 6. **Confirmation**: Ticket generation with PDF download
