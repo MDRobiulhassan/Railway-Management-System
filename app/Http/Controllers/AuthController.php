@@ -45,10 +45,8 @@ class AuthController extends Controller
             ])->withInput();
         }
 
-        // Create the user
         User::create([
             'name' => $request->name,
-            // Persist a unique placeholder to satisfy non-null + unique constraint
             'email' => $request->phone . '@noemail.local',
             'contact_number' => $request->phone,
             'nid_number' => $request->nid,
@@ -72,14 +70,12 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        // Phone-only authentication
         $user = User::where('contact_number', $request->phone)->first();
 
         if ($user && Hash::check($request->password, $user->password)) {
             Auth::login($user);
             $request->session()->regenerate();
             
-            // Check user role and redirect accordingly
             if ($user->role === 'admin') {
                 return redirect()->route('adminpanel');
             } else {

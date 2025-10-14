@@ -30,7 +30,7 @@ Route::get('/search-result', [App\Http\Controllers\SearchController::class, 'sea
 Route::get('/schedule', [App\Http\Controllers\ScheduleController::class, 'index'])->name('schedule');
 Route::get('/api/schedule/search', [App\Http\Controllers\ScheduleController::class, 'search'])->name('api.schedule.search');
 
-// Booking routes (protected - requires authentication)
+// Booking routes
 Route::middleware(['auth'])->group(function () {
     Route::post('/booking-start', [App\Http\Controllers\BookingController::class, 'start'])->name('booking.start');
     Route::get('/booking-step1', [App\Http\Controllers\BookingController::class, 'step1'])->name('booking.step1');
@@ -41,7 +41,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking-finalize', [App\Http\Controllers\BookingController::class, 'finalize'])->name('booking.finalize');
 });
 
-// Protected user routes
+// user routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/user_dashboard', [App\Http\Controllers\UserDashboardController::class, 'index'])->name('user.dashboard');
 
@@ -55,7 +55,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/tickets/{booking}/download', [App\Http\Controllers\TicketController::class, 'download'])->name('ticket.download');
 });
 
-// Admin routes (protected by auth middleware)
+// Admin routes
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
     
@@ -74,7 +74,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::delete('/payments/{id}', [App\Http\Controllers\AdminController::class, 'destroyPayment'])->name('payments.destroy');
 });
 
-// Protected admin routes
+// admin routes
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/adminpanel', [App\Http\Controllers\AdminController::class, 'index'])->name('adminpanel');
 

@@ -197,7 +197,6 @@
         const editCompartmentName = document.getElementById('edit_compartment_name');
         const editClassName = document.getElementById('edit_class_name');
 
-        // Auto-set class based on compartment
         addCompartmentName.addEventListener('change', () => {
             addClassName.value = compartmentMap[addCompartmentName.value];
         });
@@ -206,7 +205,6 @@
             editClassName.value = compartmentMap[editCompartmentName.value];
         });
 
-        // Set initial class on page load
         addClassName.value = compartmentMap[addCompartmentName.value];
 
         // Search functionality
@@ -217,7 +215,6 @@
             });
         });
 
-        // Add form posts to server; no JS override needed
 
         // Edit compartment
         tableBody.addEventListener('click', function (e) {
@@ -236,12 +233,10 @@
                     .catch(() => alert('Failed to load compartment'));
             } else if (e.target.classList.contains('delete-compartment-btn')) {
                 if (confirm('Are you sure you want to delete this compartment?')) {
-                    // handled by form submit; keep for legacy buttons
                 }
             }
         });
 
-        // Edit form posts to server
     </script>
 </body>
 

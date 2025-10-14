@@ -18,16 +18,12 @@ use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
-    /**
-     * Start booking process by storing schedule in session
-     */
     public function start(Request $request)
     {
         $request->validate([
             'schedule_id' => 'required|exists:schedules,schedule_id'
         ]);
 
-        // Get schedule with train and station details
         $schedule = Schedule::with(['train', 'sourceStation', 'destinationStation'])
                            ->findOrFail($request->schedule_id);
 
@@ -47,16 +43,12 @@ class BookingController extends Controller
             }
         }
 
-        // Store schedule in session
         session(['booking.schedule_id' => $request->schedule_id]);
         session(['booking.schedule' => $schedule]);
 
         return redirect()->route('booking.step1');
     }
 
-    /**
-     * Step 1: Seat Selection
-     */
     public function step1()
     {
         $scheduleId = session('booking.schedule_id');
@@ -69,18 +61,15 @@ class BookingController extends Controller
             return redirect()->route('schedule')->with('error', 'Session expired, please select schedule again');
         }
 
-        // Get compartments for this train
         $compartments = Compartment::where('train_id', $schedule->train_id)
                                  ->orderBy('class_name')
                                  ->get()
                                  ->groupBy('class_name');
 
-        // Get seats for this train with availability
         $seats = Seat::where('train_id', $schedule->train_id)
                     ->with('compartment')
                     ->get();
 
-        // Get booked seats for this specific schedule date
         $bookedSeats = DB::table('tickets')
                         ->where('tickets.train_id', $schedule->train_id)
                         ->where('tickets.travel_date', $schedule->departure_time->format('Y-m-d'))
@@ -88,13 +77,11 @@ class BookingController extends Controller
                         ->pluck('tickets.seat_id')
                         ->toArray();
 
-        // Get ticket prices for different classes
         $ticketPrices = TicketPrice::where('train_id', $schedule->train_id)
                                  ->with('compartment')
                                  ->get()
                                  ->keyBy('compartment.class_name');
 
-        // Get user's existing tickets for this schedule
         $existingTickets = 0;
         if (Auth::check()) {
             $existingTickets = Ticket::join('bookings', 'tickets.booking_id', '=', 'bookings.booking_id')
@@ -108,9 +95,6 @@ class BookingController extends Controller
         return view('booking_step1', compact('schedule', 'compartments', 'seats', 'bookedSeats', 'ticketPrices', 'existingTickets'));
     }
 
-    /**
-     * Process seat selection and move to Step 2: Food Selection
-     */
     public function step2(Request $request)
     {
         $request->validate([
@@ -120,7 +104,6 @@ class BookingController extends Controller
             'compartment_id' => 'required|exists:compartments,compartment_id'
         ]);
 
-        // Check if user already has tickets for this schedule
         $scheduleId = session('booking.schedule_id');
         $schedule = session('booking.schedule');
         
@@ -142,12 +125,10 @@ class BookingController extends Controller
             }
         }
 
-        // Store seat selection in session
         session(['booking.selected_seats' => $request->selected_seats]);
         session(['booking.class' => $request->class]);
         session(['booking.compartment_id' => $request->compartment_id]);
 
-        // Get food items grouped by category
         $foodItems = FoodItem::where('availability', true)
                             ->orderBy('category')
                             ->orderBy('name')
@@ -157,12 +138,9 @@ class BookingController extends Controller
         return view('booking_step2', compact('foodItems'));
     }
 
-    /**
-     * Process food selection and move to Step 3: Payment
-     */
+    
     public function step3(Request $request)
     {
-        // Store food selection in session (optional)
         $foodOrders = [];
         if ($request->has('food_items')) {
             foreach ($request->food_items as $foodId => $quantity) {
@@ -180,26 +158,22 @@ class BookingController extends Controller
         return view('booking_step3');
     }
 
-    /**
-     * Process payment method and show confirmation
-     */
+    
     public function confirm(Request $request)
     {
         $request->validate([
             'payment_method' => 'required|string|in:bKash,Nagad,Card'
         ]);
 
-        // Store payment method in session
         session(['booking.payment_method' => $request->payment_method]);
 
-        // Get all booking data from session
         $bookingData = $this->getBookingDataFromSession();
 
         if (!$bookingData) {
             return redirect()->route('schedule')->with('error', 'Booking session expired');
         }
 
-        // Debug: Log the request to see what's happening
+        // Debug
         \Log::info('Booking confirm accessed', [
             'method' => $request->method(),
             'url' => $request->fullUrl(),
@@ -209,30 +183,23 @@ class BookingController extends Controller
         return view('booking_confirm', compact('bookingData'));
     }
 
-    /**
-     * Handle GET requests to booking-confirm (redirect to proper flow)
-     */
+    
     public function confirmGet(Request $request)
     {
-        // Check if there's valid booking data in session
         $bookingData = $this->getBookingDataFromSession();
         
         if (!$bookingData) {
             return redirect()->route('schedule')->with('error', 'Please start a new booking');
         }
 
-        // If payment method is not set, redirect to step 3
         if (!isset($bookingData['payment_method'])) {
             return redirect()->route('booking.step3')->with('error', 'Please select a payment method');
         }
 
-        // If we have complete booking data, show confirmation
         return view('booking_confirm', compact('bookingData'));
     }
 
-    /**
-     * Finalize booking and save to database
-     */
+    
     public function finalize(Request $request)
     {
         if (!Auth::check()) {
@@ -248,7 +215,6 @@ class BookingController extends Controller
         try {
             DB::beginTransaction();
 
-            // Calculate total amount first
             $seatPrice = $this->calculateSeatPrice($bookingData);
             $foodPrice = 0;
             
@@ -263,7 +229,6 @@ class BookingController extends Controller
             
             $totalAmount = $seatPrice + $foodPrice;
 
-            // Create booking record
             $booking = Booking::create([
                 'user_id' => Auth::id(),
                 'train_id' => $bookingData['schedule']->train_id,
@@ -272,7 +237,6 @@ class BookingController extends Controller
                 'status' => 'confirmed'
             ]);
 
-            // Create tickets for each selected seat and update seat availability
             foreach ($bookingData['selected_seats'] as $seatId) {
                 Ticket::create([
                     'booking_id' => $booking->booking_id,
@@ -283,11 +247,8 @@ class BookingController extends Controller
                     'ticket_status' => 'active'
                 ]);
                 
-                // Note: We don't update seat availability in seats table as it's managed per schedule/date
-                // The availability is calculated dynamically based on bookings for specific dates
             }
 
-            // Create food orders if any (food price already calculated above)
             if (!empty($bookingData['food_orders'])) {
                 foreach ($bookingData['food_orders'] as $foodOrder) {
                     FoodOrder::create([
@@ -298,10 +259,8 @@ class BookingController extends Controller
                 }
             }
 
-            // Generate unique transaction ID
             $transactionId = $this->generateTransactionId($bookingData['payment_method'], $booking->booking_id);
 
-            // Create payment record
             Payment::create([
                 'booking_id' => $booking->booking_id,
                 'amount' => $totalAmount,
@@ -313,7 +272,6 @@ class BookingController extends Controller
 
             DB::commit();
 
-            // Clear booking session
             $this->clearBookingSession();
 
             return redirect()->route('user.dashboard')->with('success', 'Booking confirmed successfully!');
@@ -330,9 +288,7 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Get all booking data from session
-     */
+
     private function getBookingDataFromSession()
     {
         $scheduleId = session('booking.schedule_id');
@@ -346,7 +302,6 @@ class BookingController extends Controller
             return null;
         }
 
-        // Load schedule with relationships
         $schedule = Schedule::with(['train', 'sourceStation', 'destinationStation'])->find($scheduleId);
         
         if (!$schedule) {
@@ -363,28 +318,23 @@ class BookingController extends Controller
         ];
     }
 
-    /**
-     * Calculate seat price based on class and number of seats
-     */
+
     private function calculateSeatPrice($bookingData)
     {
         $ticketPrice = TicketPrice::where('train_id', $bookingData['schedule']->train_id)
                                  ->where('compartment_id', $bookingData['compartment_id'])
                                  ->first();
 
-        $basePrice = $ticketPrice ? $ticketPrice->base_price : 350; // Default price
+        $basePrice = $ticketPrice ? $ticketPrice->base_price : 350;
         return $basePrice * count($bookingData['selected_seats']);
     }
 
-    /**
-     * Generate unique transaction ID based on payment method
-     */
+    
     private function generateTransactionId($paymentMethod, $bookingId)
     {
         $timestamp = now()->format('YmdHis');
         $random = strtoupper(substr(md5(uniqid()), 0, 6));
         
-        // Create payment method prefix
         $methodPrefix = match($paymentMethod) {
             'bKash' => 'BK',
             'Nagad' => 'NG', 
@@ -392,14 +342,11 @@ class BookingController extends Controller
             default => 'PM'
         };
         
-        // Format: METHOD_TIMESTAMP_BOOKINGID_RANDOM
-        // Example: BK_20241122143052_1234_A1B2C3
+        
         return $methodPrefix . '_' . $timestamp . '_' . $bookingId . '_' . $random;
     }
 
-    /**
-     * Clear booking session data
-     */
+   
     private function clearBookingSession()
     {
         session()->forget([

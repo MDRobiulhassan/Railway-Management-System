@@ -16,7 +16,6 @@
     <div class="container">
         <h1>Train Station Management</h1>
 
-        <!-- Success & error messages -->
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -119,12 +118,10 @@
         const methodField = document.getElementById('method-field');
         const modalTitle = document.getElementById('stationModalLabel');
 
-        // Default to create
         document.addEventListener('DOMContentLoaded', function () {
             stationForm.action = '/adminpanel/stations';
         });
 
-        // Search functionality
         document.getElementById('searchInput').addEventListener('keyup', function () {
             const searchTerm = this.value.toLowerCase();
             const tableRows = document.querySelectorAll('#stationTableBody tr');
@@ -133,7 +130,6 @@
             });
         });
 
-        // Edit station functionality
         document.querySelectorAll('.edit-station-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const stationId = this.getAttribute('data-station-id');
@@ -154,7 +150,6 @@
             });
         });
 
-        // Reset to Add mode when modal hides
         document.getElementById('stationModal').addEventListener('hidden.bs.modal', function () {
             modalTitle.textContent = 'Add New Station';
             methodField.innerHTML = '';

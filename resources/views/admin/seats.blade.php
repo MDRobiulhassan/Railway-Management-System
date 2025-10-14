@@ -181,12 +181,10 @@
         const compartmentSelect = document.getElementById('compartment_id');
         const trainSelect = document.getElementById('train_id');
 
-        // Default add action
         document.addEventListener('DOMContentLoaded', function () {
             seatForm.action = '/adminpanel/seats';
         });
 
-        // Filter compartments by train and set class
         trainSelect.addEventListener('change', () => {
             const trainId = trainSelect.value;
             Array.from(compartmentSelect.options).forEach(opt => {

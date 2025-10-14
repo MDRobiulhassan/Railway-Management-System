@@ -26,47 +26,35 @@ class FoodItem extends Model
         'availability' => 'boolean',
     ];
 
-    /**
-     * Get the food orders for this food item
-     */
+    
     public function foodOrders()
     {
         return $this->hasMany(FoodOrder::class, 'food_id', 'food_id');
     }
 
-    /**
-     * Scope to get only available food items
-     */
+    
     public function scopeAvailable($query)
     {
         return $query->where('availability', true);
     }
 
-    /**
-     * Scope to filter by category
-     */
+    
     public function scopeByCategory($query, $category)
     {
         return $query->where('category', $category);
     }
 
-    /**
-     * Accessor to get a resolvable image URL regardless of storage location.
-     * - If the image path is already in the public storage disk (e.g. "food_images/...") it will be served via asset('storage/...').
-     * - If the image is a bare filename (seeded data in public/images), it will be served via asset('images/<filename>').
-     */
+    
     public function getImageUrlAttribute(): ?string
     {
         if (empty($this->image)) {
             return null;
         }
 
-        // If image contains a slash, assume it's a path relative to public storage disk
         if (strpos($this->image, '/') !== false) {
             return asset('storage/' . ltrim($this->image, '/'));
         }
 
-        // Otherwise treat as a file inside public/images
         return asset('images/' . $this->image);
     }
 }

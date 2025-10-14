@@ -185,7 +185,6 @@
             });
         });
 
-        // Reset edit form on modal close
         document.getElementById('editNIDModal').addEventListener('hidden.bs.modal', function () {
             editForm.reset();
             editForm.removeAttribute('action');

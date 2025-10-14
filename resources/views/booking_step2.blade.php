@@ -55,7 +55,6 @@
                 </div>
             @endif
 
-            <!-- Total & Navigation -->
             <div class="mt-5 text-center">
                 <h4>Total: <span id="totalPrice">৳0</span></h4>
                 <div class="mt-4">

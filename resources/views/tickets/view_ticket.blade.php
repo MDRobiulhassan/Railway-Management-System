@@ -13,11 +13,9 @@
 </head>
 
 <body>
-    <!-- Navbar -->
     <x-navbar />
 
     <div class="container">
-        <!-- Action Buttons -->
         <div class="action-buttons">
             <a href="{{ route('user.dashboard') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
@@ -186,7 +184,6 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <x-footer />
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

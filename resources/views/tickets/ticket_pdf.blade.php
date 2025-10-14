@@ -140,7 +140,6 @@
             padding-top: 10px;
         }
 
-        /* Page Break */
         .page-break {
             page-break-before: always;
         }

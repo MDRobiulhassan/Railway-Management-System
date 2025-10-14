@@ -16,7 +16,6 @@
     <div class="container mt-4">
         <h1>Ticket Management</h1>
 
-        <!-- Success & error messages -->
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -185,14 +184,12 @@
         let compartments = [];
         let seats = [];
 
-        // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadBookings();
             loadCompartments();
             loadSeats();
         });
 
-        // Load bookings
         async function loadBookings() {
             try {
                 const response = await fetch('/adminpanel/api/bookings');
@@ -210,7 +207,6 @@
             }
         }
 
-        // Load compartments
         async function loadCompartments() {
             try {
                 const response = await fetch('/adminpanel/api/compartments');
@@ -229,7 +225,6 @@
             }
         }
 
-        // Load seats
         async function loadSeats() {
             try {
                 const response = await fetch('/adminpanel/api/seats');
@@ -248,7 +243,6 @@
             }
         }
 
-        // Auto-set class based on compartment
         compartmentSelect.addEventListener('change', () => {
             const selectedOption = compartmentSelect.selectedOptions[0];
             if (selectedOption && selectedOption.dataset.className) {
@@ -258,7 +252,6 @@
             }
         });
 
-        // Filter seats based on compartment
         compartmentSelect.addEventListener('change', () => {
             const compartmentId = compartmentSelect.value;
             seatSelect.innerHTML = '<option value="">Select a seat...</option>';
@@ -273,7 +266,7 @@
             });
         });
 
-        // Search functionality
+        // Search 
         document.getElementById('searchInput').addEventListener('keyup', function () {
             const searchTerm = this.value.toLowerCase();
             const tableRows = document.querySelectorAll('tbody tr');
@@ -284,20 +277,17 @@
             });
         });
 
-        // Edit ticket functionality
+        // Edit ticket 
         document.querySelectorAll('.edit-ticket-btn').forEach(button => {
             button.addEventListener('click', function() {
                 currentEditId = this.getAttribute('data-ticket-id');
                 modalTitle.textContent = 'Edit Ticket';
 
-                // Add method field for PUT request
                 methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
                 
-                // Fetch ticket data
                 fetch(`/adminpanel/tickets/${currentEditId}/edit`)
                     .then(response => response.json())
                     .then(ticket => {
-                        // Populate form fields
                         bookingSelect.value = ticket.booking_id;
                         compartmentSelect.value = ticket.compartment_id;
                         seatSelect.value = ticket.seat_id;
@@ -305,7 +295,6 @@
                         document.getElementById('travel_date').value = ticket.travel_date;
                         document.getElementById('ticket_status').value = ticket.ticket_status;
                         
-                        // Update form action
                         ticketForm.action = `/adminpanel/tickets/${currentEditId}`;
                     })
                     .catch(error => {
@@ -315,7 +304,6 @@
             });
         });
 
-        // Reset form for new ticket
         document.getElementById('ticketModal').addEventListener('hidden.bs.modal', function () {
             currentEditId = null;
             modalTitle.textContent = 'Add Ticket';
@@ -325,9 +313,7 @@
             classInput.value = '';
         });
 
-        // Form submission
         ticketForm.addEventListener('submit', function(e) {
-            // Form will submit normally to the backend
         });
     </script>
 </body>

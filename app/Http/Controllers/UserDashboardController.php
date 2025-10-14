@@ -11,7 +11,6 @@ class UserDashboardController extends Controller
     {
         $userId = Auth::id();
         
-        // Get all bookings with relationships
         $allBookings = Booking::with([
             'train',
             'tickets.seat',
@@ -21,7 +20,6 @@ class UserDashboardController extends Controller
           ->orderByDesc('booking_date')
           ->get();
 
-        // Separate upcoming and past bookings based on travel date
         $today = now()->startOfDay();
         
         $upcomingBookings = $allBookings->filter(function ($booking) use ($today) {

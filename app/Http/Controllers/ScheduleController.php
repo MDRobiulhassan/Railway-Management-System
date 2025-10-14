@@ -14,7 +14,6 @@ class ScheduleController extends Controller
     {
         $query = Schedule::with(['train', 'sourceStation', 'destinationStation']);
         
-        // Only show future schedules
         $query->where('departure_time', '>', now());
         
         // Search functionality
@@ -54,7 +53,6 @@ class ScheduleController extends Controller
 
         $schedules = $query->orderBy('departure_time', 'asc')->paginate(10);
         
-        // Get all stations for search dropdowns
         $stations = Station::orderBy('name')->get();
 
         return view('schedule', compact('schedules', 'stations'));
@@ -64,7 +62,6 @@ class ScheduleController extends Controller
     {
         $query = Schedule::with(['train', 'sourceStation', 'destinationStation']);
         
-        // Only show future schedules
         $query->where('departure_time', '>', now());
         
         if ($request->has('from') && !empty($request->from)) {

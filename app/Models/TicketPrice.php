@@ -22,17 +22,13 @@ class TicketPrice extends Model
         'base_price' => 'decimal:2',
     ];
 
-    /**
-     * Get the train that this price belongs to
-     */
+    
     public function train()
     {
         return $this->belongsTo(Train::class, 'train_id', 'train_id');
     }
 
-    /**
-     * Get the compartment that this price is for
-     */
+    
     public function compartment()
     {
         return $this->belongsTo(Compartment::class, 'compartment_id', 'compartment_id');

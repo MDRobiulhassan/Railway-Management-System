@@ -12,10 +12,8 @@
 
 <body>
 
-    <!-- Navbar -->
     <x-navbar />
 
-    <!-- Hero Section -->
     <section class="hero text-center">
         <div class="container">
             <h1 class="display-4">Explore Destinations with Speed and Comfort</h1>
@@ -23,7 +21,6 @@
         </div>
     </section>
 
-    <!-- Features Section -->
     <section class="py-5 text-center">
         <div class="container">
             <h2 class="mb-4">Why Choose Us</h2>
@@ -47,7 +44,6 @@
         </div>
     </section>
 
-    <!-- Train Schedule Preview -->
     <section class="py-5 bg-light">
         <div class="container">
             <h2 class="text-center mb-4">Popular Trains</h2>
@@ -86,7 +82,6 @@
         </div>
     </section>
 
-    <!-- Testimonials -->
     <section class="py-5">
         <div class="container">
             <h2 class="text-center mb-5">What Our Users Say</h2>

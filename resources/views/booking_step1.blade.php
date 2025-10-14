@@ -45,10 +45,8 @@
                 </select>
             </div>
 
-            <!-- Hidden inputs for selected seats -->
             <div id="selected-seats-inputs"></div>
 
-            <!-- Seat layout & legend -->
             <div id="seat-section" class="hidden-init">
                 <div class="row justify-content-center align-items-start">
                     <div class="col-md-7">
@@ -86,7 +84,6 @@
         const takenSeats = @json($bookedSeats);
         const existingTickets = @json($existingTickets ?? 0);
         const maxSeatsAllowed = 5 - existingTickets;
-        // Normalize data coming from Laravel collections
         const compartments = @json($compartments);
         const seats = @json($seats);
         const ticketPrices = @json($ticketPrices);
@@ -101,7 +98,6 @@
         const compartmentSection = document.getElementById('compartment-section');
         const seatLayout = document.getElementById('seat-layout');
 
-        // Populate class dropdown reliably from data keys
         document.addEventListener('DOMContentLoaded', () => {
             try {
                 const classKeys = Object.keys(compartments || {});
@@ -148,7 +144,6 @@
             console.log('Selected compartment ID:', selectedCompartmentId);
             console.log('Filtered compartment seats:', compartmentSeats);
             
-            // Use original layout logic but with database seats
             let rows = 0;
             let seatsPerRow = [];
 
@@ -176,7 +171,6 @@
                     }
                 }
 
-                // Aisle spacer
                 rowDiv.appendChild(createSpacer());
 
                 // Right side seats
@@ -224,7 +218,6 @@
                         this.classList.remove('selected');
                         selectedSeats.delete(seatId);
                     } else {
-                        // Check if user is trying to select more seats than allowed
                         if (selectedSeats.size >= maxSeatsAllowed) {
                             const message = existingTickets > 0 
                                 ? `You can only select ${maxSeatsAllowed} more seat(s). You already have ${existingTickets} ticket(s) for this journey.`
@@ -256,7 +249,6 @@
             document.getElementById('total-price').textContent =
                 '৳ ' + (selectedSeats.size * currentPrice);
 
-            // Update hidden inputs for form submission
             const inputsContainer = document.getElementById('selected-seats-inputs');
             inputsContainer.innerHTML = '';
             selectedSeats.forEach(seatId => {
@@ -267,7 +259,6 @@
                 inputsContainer.appendChild(input);
             });
 
-            // Enable/disable next button
             document.getElementById('next-btn').disabled = selectedSeats.size === 0;
         }
     </script>

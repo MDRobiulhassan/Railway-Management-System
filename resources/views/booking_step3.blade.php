@@ -14,7 +14,6 @@
             @csrf
             
             <h3 class="text-center mb-3">Step 3: Payment Method</h3>
-            <!-- Progress bar -->
             <div class="progress mb-4 progress-20">
                 <div class="progress-bar bg-success w-100" role="progressbar">Step 3</div>
             </div>

@@ -24,7 +24,6 @@ class TicketController extends Controller
             abort(403);
         }
 
-        // Resolve schedule for this booking by train and travel date
         $firstTravelDate = $booking->tickets->first()?->travel_date;
         $schedule = null;
         if ($firstTravelDate) {
@@ -53,7 +52,6 @@ class TicketController extends Controller
             abort(403);
         }
 
-        // Resolve schedule for this booking by train and travel date
         $firstTravelDate = $booking->tickets->first()?->travel_date;
         $schedule = null;
         if ($firstTravelDate) {

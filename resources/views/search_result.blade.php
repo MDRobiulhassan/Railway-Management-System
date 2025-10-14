@@ -16,7 +16,6 @@
     <div class="container mt-4">
         <h3 class="mb-4 text-center">Available Trains</h3>
         
-        <!-- Display error messages -->
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 {{ session('error') }}
@@ -103,7 +102,6 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         @if(isset($schedules) && $schedules->hasPages())
         <div class="d-flex justify-content-center mt-4">
             {{ $schedules->appends(request()->query())->links('pagination.bootstrap-5') }}
@@ -114,7 +112,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Show alert if there's an error message
         @if(session('error'))
             alert('{{ session('error') }}');
         @endif

@@ -18,7 +18,6 @@
         <div class="profile-card text-center">
             <h2>User Profile</h2>
 
-            <!-- Success/Error Messages -->
             @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -32,27 +31,14 @@
             </div>
             @endif
 
-            <!-- Profile Avatar -->
             @if($user->photo && file_exists(public_path('storage/' . $user->photo)))
                 <img src="{{ asset('storage/' . $user->photo) }}" alt="Profile Photo" class="profile-avatar mb-3 rounded-circle">
             @else
                 <img src="https://ui-avatars.com/api/?name={{ urlencode($user->name) }}&size=150&background=007bff&color=fff" alt="Profile Photo" class="profile-avatar mb-3 rounded-circle">
             @endif
 
-            <!-- Profile form -->
             <form action="{{ route('user.profile.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <!-- Non-editable fields -->
-                <div class="mb-3 text-start">
-                    <label class="form-label fw-bold">Email</label>
-                    <input type="email" class="form-control" value="{{ $user->email }}" readonly>
-                </div>
-
-                <!-- <div class="mb-3 text-start">
-                    <label class="form-label fw-bold">Role</label>
-                    <input type="text" class="form-control" value="{{ ucfirst($user->role) }}" readonly>
-                </div> -->
-
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">NID Number</label>
                     <input type="text" class="form-control" value="{{ $user->nid_number }}" readonly>
@@ -63,12 +49,13 @@
                     <input type="text" class="form-control" value="{{ $user->nid_verified ? 'Verified' : 'Not Verified' }}" readonly>
                 </div>
 
-                <!-- <div class="mb-3 text-start">
-                    <label class="form-label fw-bold">Account Created</label>
-                    <input type="text" class="form-control" value="{{ $user->created_at?->format('Y-m-d H:i') }}" readonly>
-                </div> -->
-
-                <!-- Editable fields -->
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-bold">Email</label>
+                    <input type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email', $user->email) }}" required>
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
                 <div class="mb-3 text-start">
                     <label class="form-label fw-bold">Full Name</label>
                     <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $user->name) }}" required>

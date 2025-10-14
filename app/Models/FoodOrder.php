@@ -22,25 +22,19 @@ class FoodOrder extends Model
         'quantity' => 'integer',
     ];
 
-    /**
-     * Get the booking that this food order belongs to
-     */
+    
     public function booking()
     {
         return $this->belongsTo(Booking::class, 'booking_id', 'booking_id');
     }
 
-    /**
-     * Get the food item for this order
-     */
+    
     public function foodItem()
     {
         return $this->belongsTo(FoodItem::class, 'food_id', 'food_id');
     }
 
-    /**
-     * Calculate total price for this food order
-     */
+   
     public function getTotalPriceAttribute()
     {
         return $this->quantity * $this->foodItem->price;

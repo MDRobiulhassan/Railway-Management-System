@@ -163,7 +163,7 @@
                             </div>
                         </div>
 
-                        <!-- Duration (Auto-calculated) -->
+                        <!-- Duration -->
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label class="form-label">Duration (minutes)</label>
@@ -329,7 +329,6 @@
             });
         });
 
-        // Auto-calculate duration
         function calculateDuration() {
             const departureTime = document.getElementById('departure_time').value;
             const arrivalTime = document.getElementById('arrival_time').value;
@@ -360,7 +359,6 @@
             }
         }
 
-        // Add event listeners for auto-calculation
         document.getElementById('departure_time').addEventListener('change', calculateDuration);
         document.getElementById('arrival_time').addEventListener('change', calculateDuration);
         document.getElementById('edit_departure_time').addEventListener('change', calculateEditDuration);
@@ -419,29 +417,24 @@
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Schedule data:', data); // Debug log
+                        console.log('Schedule data:', data);
                         
                         document.getElementById('edit_schedule_id').value = data.schedule_id;
                         
-                        // Set train dropdown
                         const trainSelect = document.getElementById('edit_train_id');
                         trainSelect.value = data.train_id;
                         
-                        // Set station dropdowns
                         const sourceSelect = document.getElementById('edit_source_station_id');
                         const destSelect = document.getElementById('edit_destination_station_id');
                         sourceSelect.value = data.source_station_id;
                         destSelect.value = data.destination_station_id;
                         
-                        // Set datetime inputs
                         document.getElementById('edit_departure_time').value = data.departure_time;
                         document.getElementById('edit_arrival_time').value = data.arrival_time;
                         
-                        // Set other fields
                         document.getElementById('edit_duration_minutes').value = data.duration_minutes;
                         document.getElementById('edit_status').value = data.status;
                         
-                        // Set price fields
                         document.getElementById('edit_ac_price').value = data.prices.AC || 0;
                         document.getElementById('edit_shovan_price').value = data.prices.Shovan || 0;
                         document.getElementById('edit_snigdha_price').value = data.prices.Snigdha || 0;

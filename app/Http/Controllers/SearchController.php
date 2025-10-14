@@ -12,7 +12,6 @@ class SearchController extends Controller
 {
     public function index()
     {
-        // Get all stations for the dropdown
         $stations = Station::orderBy('name')->get();
         return view('search', compact('stations'));
     }
@@ -21,7 +20,6 @@ class SearchController extends Controller
     {
         $query = Schedule::with(['train', 'sourceStation', 'destinationStation']);
         
-        // Only show future schedules
         $query->where('departure_time', '>', now());
         
         // Filter by source station
@@ -43,12 +41,11 @@ class SearchController extends Controller
             $query->whereDate('departure_time', $request->date);
         }
 
-        // Filter by class (this would need ticket_prices table integration)
+        // Filter by class 
         $selectedClass = $request->get('class');
 
         $schedules = $query->orderBy('departure_time', 'asc')->paginate(10);
         
-        // Pass search parameters to view
         $searchParams = [
             'from' => $request->get('from'),
             'to' => $request->get('to'),

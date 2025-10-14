@@ -12,13 +12,11 @@
 </head>
 
 <body>
-    <!-- Navbar -->
     <x-navbar />
 
     <div class="container">
         <h1 class="dashboard-heading text-center">User Dashboard</h1>
 
-        <!-- Success/Error Messages -->
         @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
@@ -133,7 +131,6 @@
 
     </div>
 
-    <!-- Footer -->
     <x-footer />
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

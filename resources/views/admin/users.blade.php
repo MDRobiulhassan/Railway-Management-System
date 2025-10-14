@@ -117,7 +117,6 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Form fields (same as before) -->
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -188,7 +187,6 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Form fields (same as before) -->
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -252,7 +250,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
     <script>
-        // Search functionality
+        // Search 
         document.getElementById('searchInput').addEventListener('keyup', function () {
             const searchTerm = this.value.toLowerCase();
             const tableRows = document.querySelectorAll('tbody tr');
@@ -263,16 +261,14 @@
             });
         });
 
-        // Edit user functionality
+        // Edit user 
         document.querySelectorAll('.edit-user-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const userId = this.getAttribute('data-user-id');
                 
-                // Fetch user data
                 fetch(`/adminpanel/users/${userId}/edit`)
                     .then(response => response.json())
                     .then(user => {
-                        // Populate form fields
                         document.getElementById('edit_name').value = user.name;
                         document.getElementById('edit_email').value = user.email;
                         document.getElementById('edit_role').value = user.role;
@@ -283,7 +279,6 @@
                         document.getElementById('edit_nid_verified').value = user.nid_verified ? '1' : '0';
                         document.getElementById('edit_password').value = '';
                         
-                        // Update form action
                         document.getElementById('editUserForm').action = `/adminpanel/users/${userId}`;
                     })
                     .catch(error => {

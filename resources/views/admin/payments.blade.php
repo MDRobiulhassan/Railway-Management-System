@@ -244,7 +244,6 @@
             });
         });
 
-        // Open edit and load JSON
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 const id = this.getAttribute('data-id');
@@ -263,7 +262,6 @@
             });
         });
 
-        // Reset edit on hide
         document.getElementById('editPaymentModal').addEventListener('hidden.bs.modal', function () {
             editForm.reset();
         });

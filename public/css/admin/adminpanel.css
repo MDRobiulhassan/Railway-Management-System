@@ -33,8 +33,6 @@ body {
             font-weight: 600;
         }
 
-        /* Scope search.css only to navbar */
         .navbar-wrapper {
             all: unset;
-            /* optional reset to avoid conflicts */
         }

@@ -165,7 +165,6 @@
         const methodField = document.getElementById('method-field');
         const modalTitle = document.getElementById('modalTitle');
 
-        // Default to create
         document.addEventListener('DOMContentLoaded', function () {
             bookingForm.action = '/adminpanel/bookings';
         });

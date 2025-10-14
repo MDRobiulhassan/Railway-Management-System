@@ -19,6 +19,7 @@ class UserProfileController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate([
+            'email' => 'required|email|max:255|unique:users,email,' . $user->user_id . ',user_id',
             'name' => 'required|string|max:255',
             'contact_number' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:255',
@@ -27,7 +28,7 @@ class UserProfileController extends Controller
             'photo' => 'nullable|image|max:2048',
         ]);
 
-        // Update basic fields
+        $user->email = $validated['email'];
         $user->name = $validated['name'];
         $user->contact_number = $validated['contact_number'] ?? $user->contact_number;
         $user->address = $validated['address'] ?? $user->address;
@@ -38,7 +39,6 @@ class UserProfileController extends Controller
         }
 
         if ($request->hasFile('photo')) {
-            // Remove old photo if exists in public disk
             if (!empty($user->photo) && Storage::disk('public')->exists($user->photo)) {
                 Storage::disk('public')->delete($user->photo);
             }

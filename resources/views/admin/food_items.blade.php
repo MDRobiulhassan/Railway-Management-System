@@ -228,7 +228,6 @@
             });
         });
 
-        // Open edit modal and load data
         document.querySelectorAll('.edit-food-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const id = this.getAttribute('data-food-id');
@@ -246,7 +245,6 @@
             });
         });
 
-        // Reset edit form on close
         document.getElementById('editFoodModal').addEventListener('hidden.bs.modal', function () {
             editForm.reset();
         });

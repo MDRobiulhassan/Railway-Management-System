@@ -125,7 +125,6 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Booking Dropdown -->
                         <div class="mb-3">
                             <label class="form-label">Booking</label>
                             <select id="booking_select" name="booking_id" class="form-select" required>
@@ -171,7 +170,6 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Booking Dropdown -->
                         <div class="mb-3">
                             <label class="form-label">Booking</label>
                             <select id="edit_booking_select" name="booking_id" class="form-select" required>

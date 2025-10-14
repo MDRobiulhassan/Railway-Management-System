@@ -16,7 +16,6 @@
     <div class="container">
         <h1>Train Management</h1>
 
-        <!-- Success & error messages -->
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -173,7 +172,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
     <script>
-        // Search functionality
+        // Search 
         document.getElementById('searchInput').addEventListener('keyup', function () {
             const searchTerm = this.value.toLowerCase();
             const tableRows = document.querySelectorAll('tbody tr');
@@ -182,21 +181,18 @@
             });
         });
 
-        // Edit train functionality
+        // Edit train 
         document.querySelectorAll('.edit-train-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const trainId = this.getAttribute('data-train-id');
                 
-                // Fetch train data
                 fetch(`/adminpanel/trains/${trainId}/edit`)
                     .then(response => response.json())
                     .then(train => {
-                        // Populate form fields
                         document.getElementById('edit_train_name').value = train.train_name;
                         document.getElementById('edit_train_total_seats').value = train.total_seats;
                         document.getElementById('edit_train_type').value = train.train_type;
                         
-                        // Update form action
                         document.getElementById('editTrainForm').action = `/adminpanel/trains/${trainId}`;
                     })
                     .catch(error => {
@@ -206,7 +202,6 @@
             });
         });
 
-        // Clear forms when modals are closed
         document.getElementById('addTrainModal').addEventListener('hidden.bs.modal', function () {
             this.querySelector('form').reset();
         });

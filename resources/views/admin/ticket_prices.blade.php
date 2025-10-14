@@ -16,7 +16,6 @@
     <div class="container mt-4">
         <h1>Train Ticket Price Management</h1>
 
-        <!-- Success & error messages -->
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
@@ -170,15 +169,12 @@
         let trains = [];
         let compartments = [];
 
-        // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Ensure default action is set for Add
             priceForm.action = '/adminpanel/ticket_prices';
             loadTrains();
             loadCompartments();
         });
 
-        // Load trains
         async function loadTrains() {
             try {
                 const response = await fetch('/adminpanel/api/trains');
@@ -196,7 +192,6 @@
             }
         }
 
-        // Load compartments
         async function loadCompartments() {
             try {
                 const response = await fetch('/adminpanel/api/compartments');
@@ -215,7 +210,6 @@
             }
         }
 
-        // Auto-set class based on compartment
         compartmentSelect.addEventListener('change', () => {
             const selectedOption = compartmentSelect.selectedOptions[0];
             if (selectedOption && selectedOption.dataset.className) {
@@ -225,7 +219,7 @@
             }
         });
 
-        // Search functionality
+        // Search
         document.getElementById('searchInput').addEventListener('keyup', function () {
             const searchTerm = this.value.toLowerCase();
             const tableRows = document.querySelectorAll('tbody tr');
@@ -236,26 +230,22 @@
             });
         });
 
-        // Edit price functionality
+        // Edit price 
         document.querySelectorAll('.edit-price-btn').forEach(button => {
             button.addEventListener('click', function() {
                 currentEditId = this.getAttribute('data-price-id');
                 modalTitle.textContent = 'Edit Ticket Price';
                 
-                // Add method field for PUT request
                 methodField.innerHTML = '<input type="hidden" name="_method" value="PUT">';
                 
-                // Fetch price data
                 fetch(`/adminpanel/ticket_prices/${currentEditId}/edit`)
                     .then(response => response.json())
                     .then(price => {
-                        // Populate form fields
                         trainSelect.value = price.train_id;
                         compartmentSelect.value = price.compartment_id;
                         classInput.value = price.compartment.class_name;
                         document.getElementById('base_price').value = price.base_price;
                         
-                        // Update form action
                         priceForm.action = `/adminpanel/ticket_prices/${currentEditId}`;
                     })
                     .catch(error => {
@@ -265,7 +255,6 @@
             });
         });
 
-        // Reset form for new price
         document.getElementById('priceModal').addEventListener('hidden.bs.modal', function () {
             currentEditId = null;
             modalTitle.textContent = 'Add Ticket Price';
@@ -275,9 +264,7 @@
             classInput.value = '';
         });
 
-        // Form submission
         priceForm.addEventListener('submit', function(e) {
-            // Form will submit normally to the backend
         });
     </script>
 </body>
