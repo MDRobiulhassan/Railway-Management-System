@@ -41,17 +41,12 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Copy existing application directory permissions
 COPY --chown=www-data:www-data . /var/www/html
 
-# Change current user to www-data
-USER www-data
+# Copy entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Generate application key
-RUN php artisan key:generate
-
-# Set up storage and cache
-RUN php artisan storage:link
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
+# Set working directory
+WORKDIR /var/www/html
 
 # Expose port 80
 EXPOSE 80
@@ -59,5 +54,5 @@ EXPOSE 80
 # Configure Apache
 COPY docker/000-default.conf /etc/apache2/sites-available/000-default.conf
 
-# Start Apache in foreground
-CMD ["apache2-foreground"]
+# Set entrypoint
+ENTRYPOINT ["entrypoint.sh"]
