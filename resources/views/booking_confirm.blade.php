@@ -13,6 +13,25 @@
         <div class="confirm-card">
             <h3 class="text-center mb-4">Booking Confirmation</h3>
 
+            <!-- Display Errors -->
+            @if(session('error'))
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <ul class="mb-0">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+
             <!-- Train Details -->
             <div>
                 <h5 class="section-title">Train Details</h5>
@@ -91,21 +110,42 @@
                 @endphp
                 <div class="info-row">
                     <div class="info-label">Total Payout:</div>
-                    <div>৳{{ $totalAmount }}</div>
-                </div>
-                <div class="info-row">
-                    <div class="info-label">Payment Method:</div>
-                    <div>{{ $bookingData['payment_method'] ?? 'N/A' }}</div>
+                    <div class="fw-bold text-success">৳{{ $totalAmount }}</div>
                 </div>
             </div>
 
-            <form method="POST" action="{{ route('booking.finalize') }}">
+            <form method="POST" action="{{ route('payment.initiate') }}" id="paymentForm">
                 @csrf
-                <button type="submit" class="btn btn-primary mt-4 w-100 fw-bold">Proceed</button>
+                <button type="submit" class="btn btn-success mt-4 w-100 fw-bold py-3" id="paymentBtn">
+                    <span class="btn-text">
+                        <i class="bi bi-credit-card"></i> Proceed to Payment (SSLCommerz)
+                    </span>
+                    <span class="btn-loading d-none">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Processing...
+                    </span>
+                </button>
             </form>
+            
+            <div class="text-center mt-3">
+                <small class="text-muted">Secure payment powered by SSLCommerz</small>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            const btn = document.getElementById('paymentBtn');
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoading = btn.querySelector('.btn-loading');
+            
+            // Disable button and show loading
+            btn.disabled = true;
+            btnText.classList.add('d-none');
+            btnLoading.classList.remove('d-none');
+        });
+    </script>
 </body>
 
 </html>

@@ -11,13 +11,13 @@
 <body>
 
     <div class="container py-5">
-        <form method="POST" action="{{ route('booking.step3') }}">
+        <form method="POST" action="{{ route('booking.confirm') }}">
             @csrf
 
             <h2 class="text-center fw-bold mb-3">Step 2: Food Order (Optional)</h2>
 
             <div class="progress mb-4 progress-20">
-                <div class="progress-bar bg-success w-66" role="progressbar">Step 2</div>
+                <div class="progress-bar bg-success w-100" role="progressbar">Step 2</div>
             </div>
 
             @if($foodItems && $foodItems->count() > 0)

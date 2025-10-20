@@ -35,11 +35,21 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/booking-start', [App\Http\Controllers\BookingController::class, 'start'])->name('booking.start');
     Route::get('/booking-step1', [App\Http\Controllers\BookingController::class, 'step1'])->name('booking.step1');
     Route::post('/booking-step2', [App\Http\Controllers\BookingController::class, 'step2'])->name('booking.step2');
-    Route::post('/booking-step3', [App\Http\Controllers\BookingController::class, 'step3'])->name('booking.step3');
     Route::post('/booking-confirm', [App\Http\Controllers\BookingController::class, 'confirm'])->name('booking.confirm');
     Route::get('/booking-confirm', [App\Http\Controllers\BookingController::class, 'confirmGet'])->name('booking.confirm.get');
-    Route::post('/booking-finalize', [App\Http\Controllers\BookingController::class, 'finalize'])->name('booking.finalize');
 });
+
+// Payment routes (SSLCommerz)
+// Initiate payment requires authentication
+Route::middleware(['auth'])->group(function () {
+    Route::post('/payment/initiate', [App\Http\Controllers\PaymentController::class, 'initiatePayment'])->name('payment.initiate');
+});
+
+// Callback routes don't require auth middleware (SSLCommerz callbacks)
+Route::match(['get', 'post'], '/payment/success', [App\Http\Controllers\PaymentController::class, 'success'])->name('payment.success');
+Route::match(['get', 'post'], '/payment/fail', [App\Http\Controllers\PaymentController::class, 'fail'])->name('payment.fail');
+Route::match(['get', 'post'], '/payment/cancel', [App\Http\Controllers\PaymentController::class, 'cancel'])->name('payment.cancel');
+Route::post('/payment/ipn', [App\Http\Controllers\PaymentController::class, 'ipn'])->name('payment.ipn');
 
 // user routes
 Route::middleware(['auth'])->group(function () {

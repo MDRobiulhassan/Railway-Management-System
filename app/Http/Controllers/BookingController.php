@@ -138,9 +138,12 @@ class BookingController extends Controller
         return view('booking_step2', compact('foodItems'));
     }
 
+    // Step 3 removed - going directly to confirm page after step 2
+
     
-    public function step3(Request $request)
+    public function confirm(Request $request)
     {
+        // Handle food orders from step 2
         $foodOrders = [];
         if ($request->has('food_items')) {
             foreach ($request->food_items as $foodId => $quantity) {
@@ -155,30 +158,11 @@ class BookingController extends Controller
         
         session(['booking.food_orders' => $foodOrders]);
 
-        return view('booking_step3');
-    }
-
-    
-    public function confirm(Request $request)
-    {
-        $request->validate([
-            'payment_method' => 'required|string|in:bKash,Nagad,Card'
-        ]);
-
-        session(['booking.payment_method' => $request->payment_method]);
-
         $bookingData = $this->getBookingDataFromSession();
 
         if (!$bookingData) {
             return redirect()->route('schedule')->with('error', 'Booking session expired');
         }
-
-        // Debug
-        \Log::info('Booking confirm accessed', [
-            'method' => $request->method(),
-            'url' => $request->fullUrl(),
-            'payment_method' => $request->payment_method
-        ]);
 
         return view('booking_confirm', compact('bookingData'));
     }
@@ -190,10 +174,6 @@ class BookingController extends Controller
         
         if (!$bookingData) {
             return redirect()->route('schedule')->with('error', 'Please start a new booking');
-        }
-
-        if (!isset($bookingData['payment_method'])) {
-            return redirect()->route('booking.step3')->with('error', 'Please select a payment method');
         }
 
         return view('booking_confirm', compact('bookingData'));

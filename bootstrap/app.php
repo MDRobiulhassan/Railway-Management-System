@@ -15,6 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => \App\Http\Middleware\AuthMiddleware::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
+        
+        // Exclude payment callback routes from CSRF verification
+        // SSLCommerz sends POST requests without CSRF tokens
+        $middleware->validateCsrfTokens(except: [
+            'payment/success',
+            'payment/fail',
+            'payment/cancel',
+            'payment/ipn',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

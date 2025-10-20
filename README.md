@@ -5,7 +5,7 @@ A comprehensive web-based railway management system built with Laravel 11, desig
 ![Laravel](https://img.shields.io/badge/Laravel-11-red?style=flat-square&logo=laravel)
 ![PHP](https://img.shields.io/badge/PHP-8.2+-blue?style=flat-square&logo=php)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.3-purple?style=flat-square&logo=bootstrap)
-![SQLite](https://img.shields.io/badge/SQLite-Database-green?style=flat-square&logo=sqlite)
+![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![DomPDF](https://img.shields.io/badge/DomPDF-PDF_Generation-orange?style=flat-square)
 
 ## 🚂 Core Features
@@ -19,7 +19,7 @@ A comprehensive web-based railway management system built with Laravel 11, desig
 - **Smart Dashboard** - Separate upcoming and past bookings with status tracking
 - **Profile Management** - Update personal information, photo, and contact details
 - **Ticket Management** - View, download PDF tickets
-- **Payment Processing** - Secure payment handling with status tracking
+- **Payment Processing** - Secure SSLCommerz integration with real-time transaction tracking
 
 ### 🔧 Admin Features
 - **Comprehensive Admin Panel** - Complete CRUD operations for all entities
@@ -52,9 +52,9 @@ A comprehensive web-based railway management system built with Laravel 11, desig
 ### Architecture
 - **Pattern**: MVC (Model-View-Controller)
 - **Middleware**: Custom admin middleware for route protection
-- **Controllers**: 9 specialized controllers for different domains
+- **Controllers**: 10 specialized controllers for different domains
 - **Models**: 13 Eloquent models with relationships
-- **Views**: 30+ Blade templates with component reusability
+- **Views**: 34 Blade templates with component reusability
 
 ## 📋 System Requirements
 
@@ -111,6 +111,19 @@ php artisan optimize:clear
 php artisan serve
 ```
 
+#### 9. SSLCommerz Configuration
+Add these to your `.env` file:
+```bash
+# SSLCommerz Configuration (Sandbox)
+SSLCOMMERZ_STORE_ID=bangl68ef9ee22c083
+SSLCOMMERZ_STORE_PASSWORD=bangl68ef9ee22c083@ssl
+SSLCOMMERZ_IS_SANDBOX=true
+SSLCOMMERZ_IS_LOCALHOST=true
+
+# For production, set:
+# SSLCOMMERZ_IS_SANDBOX=false
+# SSLCOMMERZ_IS_LOCALHOST=false
+```
 
 ### Production Deployment
 ```bash
@@ -169,8 +182,13 @@ jobs                    # Background job queue
 2. **Selection Phase**: Choose schedule with real-time availability
 3. **Seat Selection**: Pick compartment class and specific seats (5 Seats per NID in a single schedule)
 4. **Food Ordering**: Optional meal selection from categorized menu
-5. **Payment**: Secure payment processing with validation
-6. **Confirmation**: Ticket generation with PDF download
+5. **Payment**: Secure SSLCommerz integration with real-time validation and transaction tracking
+   - Redirect to SSLCommerz payment gateway
+   - Automatic user re-authentication after payment
+   - Transaction verification and status update
+6. **Confirmation**: Automatic ticket generation with PDF download
+   - Automatic redirect to success page
+   - Transaction ID and booking reference provided
 
 ### 🔧 Admin Operations
 1. **Schedule Management**: Create routes with automatic duration calculation
@@ -187,7 +205,7 @@ jobs                    # Background job queue
 
 ## 🏗️ System Architecture
 
-### Controllers (9 Specialized)
+### Controllers (10 Specialized)
 - **AdminController**: Complete CRUD for all admin entities (42KB)
 - **BookingController**: Multi-step booking workflow management
 - **AuthController**: User authentication and registration
@@ -196,6 +214,7 @@ jobs                    # Background job queue
 - **UserProfileController**: Profile management
 - **TicketController**: PDF ticket generation
 - **SearchController**: Train search functionality
+- **PaymentController**: Handles SSLCommerz payment integration and callbacks
 
 ### Models (13 Eloquent)
 - **User**: Authentication with NID relationship
@@ -209,12 +228,13 @@ jobs                    # Background job queue
 - **NidDb, TicketPrice, FoodOrder**: Supporting entities
 
 ### Key Features Implementation
-- **Session-based Booking**: Secure multi-step process
-- **Real-time Availability**: Dynamic seat calculation
+- **Session-based Booking**: Secure multi-step process with cache-based persistence
+- **SSLCommerz Integration**: Secure payment processing with real-time transaction tracking
+- **Real-time Availability**: Dynamic seat calculation and booking status
 - **File Upload**: Profile photos with storage symlink
-- **PDF Generation**: DomPDF integration for tickets
-- **AJAX Operations**: Dynamic form handling
-- **Role-based Access**: Admin middleware protection
+- **PDF Generation**: DomPDF integration for tickets and receipts
+- **AJAX Operations**: Dynamic form handling and data validation
+- **Role-based Access**: Admin middleware protection and permission management
 
 ## 🎨 Frontend Architecture
 
@@ -370,6 +390,7 @@ This project is open-sourced software licensed under the [MIT License](https://o
 - **Laravel Framework**: MIT License
 - **Bootstrap**: MIT License  
 - **DomPDF**: LGPL License
+- **SSLCommerz**: [Custom License](https://developer.sslcommerz.com/license/)
 
 ## 👥 Development Team
 
@@ -388,6 +409,7 @@ This project is open-sourced software licensed under the [MIT License](https://o
 
 - **Laravel Team**: For the robust PHP framework
 - **Bootstrap Team**: For the responsive UI framework
+- **SSLCommerz**: For secure payment gateway integration
 - **DomPDF Contributors**: For PDF generation capabilities
 - **Academic Supervisors**: For project guidance and mentorship
 - **Open Source Community**: For inspiration and best practices
